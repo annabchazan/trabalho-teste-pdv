@@ -33,3 +33,29 @@ Para executar a aplicação utilizando o docker, utilize o seguinte comando na r
 docker compose up -d
 ```
 
+---
+
+# Trabalho Acadêmico — Qualidade e Teste
+
+Fork do software original ([repo-software-testing-courses/pdv](https://github.com/repo-software-testing-courses/pdv))
+usado como alvo de teste na disciplina Qualidade e Teste.
+
+## Artefatos da Entrega 1
+
+- **Plano de Teste:** [docs/plano-teste.md](docs/plano-teste.md) (versão final colaborativa: [link Google Docs — preencher])
+- **Registro de uso de IA:** [docs/ai/AI-LOG.md](docs/ai/AI-LOG.md)
+- **Código-fonte original:** `src/main/java/net/originmobi/pdv/`
+- **Testes unitários:** `src/test/java/net/originmobi/pdv/`
+- **Casos de teste manual (TestLink):** [link — preencher]
+- **Relatório de bugs:** [Issues deste repositório](../../issues)
+- **Slides/apresentação:** [preencher diretório indicado pela professora]
+
+## Responsabilidades por membro
+
+| Membro | Classe sob teste unitário | Funcionalidade testada manualmente |
+|--------|---------------------------|-------------------------------------|
+| [preencher] | `VendaService` | [preencher] |
+| Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | [preencher] |
+| [preencher] | `RecebimentoService` | [preencher] |
+| [preencher] | `CaixaService` | [preencher] |
+
