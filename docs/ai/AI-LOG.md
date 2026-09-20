@@ -58,6 +58,33 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
   suíte de testes executada localmente para confirmar que os testes criados e
   corrigidos passam.
 
+### 2026-09-20 — Criação de testes unitários de CaixaService
+
+- **Ferramenta:** GitHub Copilot
+- **Membro responsável:** João Pedro G. Valadares
+- **Contexto/Prompt (resumo):** Apoio na continuidade da Entrega 1, com
+  implementação de testes unitários isolados para `CaixaService`, uma classe
+  com regras de abertura, fechamento, validação e filtragem de caixas.
+- **Artefatos afetados:**
+  `src/test/java/net/originmobi/pdv/service/CaixaServiceTest.java` e
+  `pom.xml`.
+- **Validação realizada:** Foram projetados quatro cenários com JUnit e
+  Mockito, cobrindo caixa aberto encontrado, caixa aberto ausente, filtragem
+  por data e listagem sem data.
+
+### 2026-09-20 — Correção do ambiente de testes Maven
+
+- **Ferramenta:** GitHub Copilot
+- **Membro responsável:** João Pedro G. Valadares
+- **Contexto/Prompt (resumo):** Apoio na configuração do ambiente para permitir
+  a execução dos testes unitários do projeto com o Maven Wrapper e Java 19.
+- **Artefatos afetados:** `.mvn/wrapper/maven-wrapper.jar`,
+  `.mvn/wrapper/maven-wrapper.properties` e `pom.xml`.
+- **Validação realizada:** O Maven Wrapper foi configurado com Maven 3.9.9,
+  as dependências de teste foram alinhadas ao Java 19 e o Surefire foi
+  atualizado. O comando `mvnw.cmd -Dtest=CaixaServiceTest test` foi executado
+  com sucesso, com 4 testes executados, 0 falhas e 0 erros.
+
 <!--
 Modelo de entrada para novos registros:
 
