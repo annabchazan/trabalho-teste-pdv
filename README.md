@@ -57,5 +57,5 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 | [preencher] | `VendaService` | [preencher] |
 | Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | [preencher] |
 | [preencher] | `RecebimentoService` | [preencher] |
-| [preencher] | `CaixaService` | [preencher] |
+| João Pedro G. Valadares | `CaixaService` | Abertura e fechamento de caixa |
 
