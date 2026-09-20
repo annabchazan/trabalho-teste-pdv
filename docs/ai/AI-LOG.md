@@ -58,6 +58,51 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
   suíte de testes executada localmente para confirmar que os testes criados e
   corrigidos passam.
 
+### 2026-09-20 — Testes unitários de RecebimentoService e relatório de defeitos
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5)
+- **Membro responsável:** João Portela
+- **Contexto/Prompt (resumo):** Pedido de apoio para analisar o estado do
+  repositório e o Plano de Teste do grupo, identificar qual classe ainda não
+  tinha dono (`RecebimentoService`) e projetar a suíte de testes unitários dessa
+  classe. A instrução dada à IA foi explícita em dois pontos: (1) **ler
+  `RecebimentoService.java` e todas as suas dependências antes de escrever
+  qualquer teste**, mapeando as armadilhas de testabilidade; e (2) **não alterar
+  nenhum arquivo de `src/main`** — defeitos encontrados deveriam virar Issue, e
+  não correção silenciosa que faria o teste passar escondendo o problema.
+- **Artefatos afetados:**
+  - `src/test/java/net/originmobi/pdv/service/RecebimentoServiceTest.java`
+    (24 casos, TU-REC-01 a TU-REC-24)
+  - `docs/bugs/defeitos-recebimento.md` (defeitos D1, D2 e D3)
+  - `docs/testes-manuais/CT-REC-01.md` (CT-REC-01 a CT-REC-03, projetados)
+  - `docs/ai/snapshots/RecebimentoServiceTest.v1-ia.java` (versão inicial preservada)
+  - `docs/ai/revisao-recebimento-service.md` (descrição das alterações v1 → final)
+- **Resultado da IA (resumo):** suíte cobrindo os três métodos públicos, incluindo
+  o laço de rateio do valor entre parcelas e a bifurcação cartão/caixa; três
+  defeitos apontados com causa raiz e número de linha; roteiros de teste manual.
+- **Decisão:** aceito na maior parte. Foram rejeitadas duas coisas: deixar os
+  testes que expõem defeito com a asserção do comportamento errado (optou-se por
+  `@Ignore` + Issue, mantendo a asserção correta) e qualquer alteração em
+  `src/main`. Foram acrescentados na revisão: uma asserção que nomeia o
+  `NullPointerException` no relatório do D2 e o caso TU-REC-24, ausente na
+  primeira versão.
+- **Validação realizada:**
+  1. Suíte executada de fato, dentro do container `eclipse-temurin:8-jdk` do
+     `docker-compose.yml` (o host só tem JDK 26, incompatível com o `target 1.8`
+     e com o Mockito 2.15): **37 testes, 0 falhas, 3 ignorados** — 24 desta
+     classe e 13 da suíte da Anna, que não foi afetada.
+  2. Os 3 testes marcados com `@Ignore` tiveram a anotação **removida
+     temporariamente** e a suíte foi reexecutada, para provar que eles falham
+     pelo defeito que afirmam e não por erro de escrita. As três falhas foram
+     confirmadas uma a uma (registro em `docs/ai/revisao-recebimento-service.md`,
+     seção 4).
+  3. Relatório JaCoCo conferido: **94,1% de cobertura de arestas** (32/34) e
+     96,7% de linhas em `RecebimentoService`. As arestas restantes foram
+     analisadas individualmente e são inalcançáveis (uma delas por causa do
+     próprio defeito D2) — não foram "cobertas" com cenários artificiais.
+  4. Cada `assertEquals` foi conferido contra a string literal do código-fonte,
+     inclusive as mensagens com erro de português do sistema original.
+
 <!--
 Modelo de entrada para novos registros:
 
