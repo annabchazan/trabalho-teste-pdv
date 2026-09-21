@@ -42,7 +42,7 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 
 ## Artefatos da Entrega 1
 
-- **Plano de Teste:** [docs/plano-teste.md](docs/plano-teste.md) (versão final colaborativa: [link Google Docs — preencher])
+- **Plano de Teste:** [docs/plano-teste.md](docs/plano-teste.md) (versão final colaborativa: [Google Docs](https://docs.google.com/document/d/1oVK7AhjF8N6JUp6qeUy8XOYfglWvrWK11OmjJYEYRDw/edit?tab=t.0))
 - **Registro de uso de IA:** [docs/ai/AI-LOG.md](docs/ai/AI-LOG.md)
 - **Código-fonte original:** `src/main/java/net/originmobi/pdv/`
 - **Testes unitários:** `src/test/java/net/originmobi/pdv/`

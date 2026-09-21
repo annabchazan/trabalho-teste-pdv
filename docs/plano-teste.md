@@ -1,7 +1,7 @@
 # Plano de Teste — PDV (Qualidade e Teste)
 
-> Rascunho local. Migrar para Google Docs (todos os membros logados em suas
-> contas) e colar o link final na seção correspondente do `README.md`.
+> Versão final colaborativa (todos os membros logados em suas contas):
+> https://docs.google.com/document/d/1oVK7AhjF8N6JUp6qeUy8XOYfglWvrWK11OmjJYEYRDw/edit?tab=t.0
 
 ## 1. Escopo
 
@@ -32,7 +32,7 @@
 - Casos de teste manual: TestLink (link: [preencher]) + planilha/documento
   complementar para os demais cenários
 - Relatório de bugs: GitHub Issues do repositório do grupo
-- Este Plano de Teste (versão final no Google Docs: [preencher link])
+- Este Plano de Teste (versão final no [Google Docs](https://docs.google.com/document/d/1oVK7AhjF8N6JUp6qeUy8XOYfglWvrWK11OmjJYEYRDw/edit?tab=t.0))
 
 ### 3.1 Artefatos de `RecebimentoService` (João Portela)
 
