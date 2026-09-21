@@ -103,6 +103,68 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
   4. Cada `assertEquals` foi conferido contra a string literal do código-fonte,
      inclusive as mensagens com erro de português do sistema original.
 
+### 2026-09-21 — Execução manual do CT-REC-01 e diagnóstico de 3 defeitos bloqueantes
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5)
+- **Membro responsável:** João Portela
+- **Contexto/Prompt (resumo):** Pedido de apoio para **executar** os casos de
+  teste manual do módulo de recebimento, que estavam apenas projetados. A divisão
+  de trabalho foi decidida antes de começar: **eu cadastrei as pré-condições e
+  operei o sistema pela interface**; a IA ficou responsável por preparar o
+  ambiente, verificar o estado real no banco após cada passo e diagnosticar a
+  causa raiz dos erros observados, consultando o código-fonte e os logs do
+  servidor em vez de propor correções por tentativa e erro.
+- **Artefatos afetados:**
+  - `docs/testes-manuais/CT-REC-01.md` (resultados obtidos preenchidos;
+    pré-condições corrigidas; CT-REC-03 justificado como não executado)
+  - `docs/bugs/defeitos-recebimento.md` (defeitos D4, D5 e D6)
+  - `src/test/java/net/originmobi/pdv/service/RecebimentoServiceTest.java`
+    (caso TU-REC-25)
+  - `docs/ai/revisao-recebimento-service.md` (seção 3.3)
+- **Resultado da IA (resumo):** três diagnósticos de causa raiz, cada um
+  confirmado contra o log do servidor e o estado do banco:
+  1. **D4** — `parcela.data_alteracao TIMESTAMP NOT NULL` sem default na
+     migration, inconsistente com as tabelas irmãs. Em MySQL 8
+     (`explicit_defaults_for_timestamp = ON`) o default implícito do MySQL 5.x
+     deixou de existir → `SQL 1364` → nenhuma venda a prazo fecha.
+  2. **D5** — o trigger `atualiza_produto_estoque_AFTER_INSERT` ignora
+     `new.tipo` e sempre subtrai, com guarda que impede a movimentação inicial →
+     nenhum produto com controle de estoque pode ser vendido.
+  3. **D6** — `abrirRecebimento` com nenhuma parcela marcada estoura
+     `NumberFormatException` cru, por causa de `"".split(" ") == [""]`.
+- **Decisão:** aceitos os três diagnósticos após verificação (abaixo). Duas
+  correções de ambiente foram aplicadas **apenas no banco local**, com meu aval
+  explícito, para tornar o fluxo executável — **nenhum arquivo de `src/main` foi
+  alterado**; os defeitos foram reportados, não corrigidos no código. Uma
+  sugestão da IA foi **rejeitada e corrigida por mim**: ela inicialmente
+  afirmou que o `ProdutoRepository.movimentaEstoque` "esquecia" de atualizar o
+  saldo; ao checar, existe um trigger justamente para isso, e a IA teve que
+  refazer o diagnóstico — o defeito estava na lógica do trigger, não na ausência
+  dele.
+- **Validação realizada:**
+  1. Cada causa raiz foi confirmada contra a **stack trace real** do servidor
+     (ex.: `at net.originmobi.pdv.service.RecebimentoService.abrirRecebimento(RecebimentoService.java:67)`)
+     e contra consultas ao MySQL, não por inferência.
+  2. A correção do D5 foi **provada na prática**: após o ajuste do trigger, uma
+     entrada de 50 unidades levou o saldo de 0 para 50, e as duas vendas
+     seguintes (2 e 3 un.) o deixaram em 45 — entrada creditando e saídas
+     debitando. Antes, o saldo ficava em 0.
+  3. Todo resultado do CT-REC-01 foi conferido no banco, campo por campo
+     (`recebimento`, `parcela`, `caixa_lancamento`, `caixa`), e não apenas pela
+     mensagem na tela.
+  4. O TU-REC-25 teve o `@Ignore` removido temporariamente para provar que falha
+     pelo defeito D6 (`Esperava validação de negócio, veio
+     java.lang.NumberFormatException`) e não por erro de escrita.
+  5. Suíte completa do grupo reexecutada ao final: **74 testes, 0 falhas, 4
+     ignorados** (RecebimentoService 25, VendaService 32, NotaFiscalItem 13,
+     Caixa 4).
+- **Observação metodológica:** D4 e D5 são invisíveis para os quatro conjuntos
+  de testes unitários do grupo, porque todos isolam os repositórios com Mockito e
+  a lógica defeituosa está no schema e num trigger do banco. D6 era um caso de
+  entrada ausente na minha própria suíte, apesar dos 94,1% de cobertura de
+  arestas. Os três reforçam, com evidência própria, por que a Entrega 2 precisa de
+  testes de integração com banco real e da técnica funcional de valor limite.
+
 ### 2026-09-21 — Criação de testes unitários de VendaService
 
 - **Ferramenta:** Claude Code (Anthropic, modelo Opus 5)

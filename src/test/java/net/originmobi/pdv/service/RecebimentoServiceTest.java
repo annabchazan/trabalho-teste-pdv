@@ -173,6 +173,25 @@ public class RecebimentoServiceTest {
 		}
 	}
 
+	// TU-REC-25 - defeito D6
+	@Test
+	@Ignore("Defeito D6 - RecebimentoService:67 faz Long.decode em elemento vazio; ver docs/bugs/defeitos-recebimento.md")
+	public void abrirRecebimento_deveLancarMensagemAmigavel_quandoNenhumaParcelaFoiSelecionada() {
+		// ReceberController:97 faz request.get("parcelas").split(" "); com o
+		// parametro vazio isso devolve [""] - um array com UM elemento vazio, e nao
+		// um array vazio. Caso descoberto na execucao manual do CT-REC-01.
+		try {
+			service.abrirRecebimento(COD_PESSOA, new String[] { "" });
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertFalse("Esperava validação de negócio, veio " + e.getClass().getName(),
+					e instanceof NumberFormatException);
+			assertEquals("Selecione ao menos uma parcela para receber", e.getMessage());
+		}
+
+		verify(recebimentos, never()).save(any(Recebimento.class));
+	}
+
 	// TU-REC-06 - defeito D1
 	@Test
 	@Ignore("Defeito D1 (Issue #4) - RecebimentoService:72 compara Long com != ; ver docs/bugs/defeitos-recebimento.md")
