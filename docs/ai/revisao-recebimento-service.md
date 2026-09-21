@@ -84,6 +84,29 @@ Não é cobertura pela cobertura: é uma regra de negócio real que estava sem t
 
 Cobertura de arestas de `RecebimentoService`: **91,2% → 94,1%** (32 de 34).
 
+### 3.3 Caso ausente descoberto pela execução manual (TU-REC-25)
+
+Este é o achado mais importante desta revisão, e vale registrar com honestidade:
+**a suíte de 24 casos foi dada como completa, com 94,1% de cobertura de arestas,
+e ainda assim tinha um buraco que só a execução manual expôs.**
+
+Durante o CT-REC-01, ao clicar no botão de receber sem marcar nenhuma parcela, o
+sistema devolveu `NumberFormatException: Zero length string` cru na tela. A causa
+é `ReceberController:97` (`"".split(" ")` devolve `[""]`, um array com um elemento
+vazio, não um array vazio) combinada com `RecebimentoService:67`
+(`Long.decode("")`).
+
+Os 24 casos originais cobriam, em `abrirRecebimento`, parcela já quitada, parcela
+de outro cliente, cliente inexistente, falha do repositório e o caso do cache de
+`Long` — mas **nenhum exercitava a lista de parcelas vazia**. Foi acrescentado
+TU-REC-25, e o defeito virou a Issue #12 (D6).
+
+A lição metodológica: cobertura de arestas alta não implica cobertura de
+**classes de equivalência de entrada**. Os 94,1% foram atingidos sem nunca testar
+a fronteira "coleção vazia", porque o laço `for` da linha 66 é percorrido de
+qualquer forma — com um elemento inválido. Para a Entrega 2, isso reforça a
+necessidade da técnica funcional (análise de valor limite) ao lado da estrutural.
+
 ## 4. Como o resultado da IA foi verificado
 
 1. **Execução real, em Java 8.** O host tem apenas JDK 26, incompatível com o

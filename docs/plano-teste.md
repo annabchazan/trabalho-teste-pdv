@@ -37,11 +37,11 @@
 
 ### 3.1 Artefatos de `RecebimentoService` (João Portela)
 
-- Testes unitários TU-REC-01 a TU-REC-24:
+- Testes unitários TU-REC-01 a TU-REC-25:
   `src/test/java/net/originmobi/pdv/service/RecebimentoServiceTest.java`
-- Casos de teste manual CT-REC-01 a CT-REC-03 (projetados):
+- Casos de teste manual CT-REC-01 a CT-REC-03 (**executados em 21/09/2026**):
   `docs/testes-manuais/CT-REC-01.md`
-- Defeitos D1, D2 e D3, com causa raiz e correção sugerida:
+- Defeitos D1 a D6, com causa raiz e correção sugerida (Issues #4, #5, #6, #10, #11, #12):
   `docs/bugs/defeitos-recebimento.md`
 - Versão inicial gerada com IA, preservada:
   `docs/ai/snapshots/RecebimentoServiceTest.v1-ia.java`
