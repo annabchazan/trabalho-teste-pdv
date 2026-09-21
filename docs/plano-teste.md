@@ -47,6 +47,18 @@
 - Descrição das alterações feitas na revisão da solução gerada com IA:
   `docs/ai/revisao-recebimento-service.md`
 
+### 3.2 Artefatos de `CaixaService` (João Pedro G. Valadares)
+
+- Testes unitários TU-CX-01 a TU-CX-11:
+  `src/test/java/net/originmobi/pdv/service/CaixaServiceTest.java`.
+  Os cenários cobrem consulta de caixa aberto, filtro por data, abertura com
+  valor nulo ou positivo, rejeição de valor negativo e fechamento com senha
+  vazia, incorreta ou válida.
+- Casos de teste manual CT-CX-01 e CT-CX-02 (planejados, aguardando execução):
+  `docs/testes-manuais/CT-CAIXA-01.md`.
+  Os casos descrevem abertura e fechamento de caixa, mas os campos de resultado
+  obtido e status só serão preenchidos durante a execução manual.
+
 ## 4. Ferramentas
 
 - **Build/execução:** Maven (`mvnw`), Docker Compose (MySQL)

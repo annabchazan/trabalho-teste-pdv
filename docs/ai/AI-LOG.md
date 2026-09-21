@@ -6,6 +6,24 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
 
 ## Entradas
 
+### 2026-09-21 - Ampliação dos testes e documentação de CaixaService
+
+- **Ferramenta:** Codex (OpenAI)
+- **Membro responsável:** João Pedro G. Valadares
+- **Contexto/Prompt (resumo):** Pedido para ampliar moderadamente os testes
+  unitários de `CaixaService`, e para documentar a responsabilidade individual no plano de teste. A instrução
+  também determinou que os casos manuais fossem apenas planejados, sem registrar
+  execução, TestLink ou Issue nesta etapa.
+- **Artefatos afetados:**
+  `src/test/java/net/originmobi/pdv/service/CaixaServiceTest.java`, `docs/plano-teste.md`, `README.md` e
+  este registro.
+- **Decisão:** foram incluídos cenários de abertura e fechamento: caixa anterior aberto, valor nulo, valor
+  positivo, valor negativo, senha vazia, senha incorreta e senha válida.
+- **Validação realizada:** os testes foram revisados contra `CaixaService.java`
+  e executados no container Java 8 do projeto com
+  `docker compose run --rm --no-deps -v pdv-m2:/root/.m2 pdv-app mvn -B
+  -Dtest=CaixaServiceTest test`: 11 testes, 0 falhas e 0 erros.
+
 ### 2026-09-11 — Mapeamento de classes para a Entrega 1
 
 - **Ferramenta:** Claude Code (Anthropic, modelo Sonnet 5)

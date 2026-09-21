@@ -65,6 +65,11 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 - Solução inicial gerada com IA, preservada: [`docs/ai/snapshots/RecebimentoServiceTest.v1-ia.java`](docs/ai/snapshots/RecebimentoServiceTest.v1-ia.java)
 - Revisão da solução gerada com IA: [`docs/ai/revisao-recebimento-service.md`](docs/ai/revisao-recebimento-service.md)
 
+**João Pedro G. Valadares — `CaixaService`**
+
+- Testes unitários TU-CX-01..11: [`CaixaServiceTest.java`](src/test/java/net/originmobi/pdv/service/CaixaServiceTest.java)
+- Casos manuais CT-CX-01/02, ainda planejados para execução: [`docs/testes-manuais/CT-CAIXA-01.md`](docs/testes-manuais/CT-CAIXA-01.md)
+
 ## Como executar os testes
 
 O projeto tem `source/target 1.8`, incompatível com JDKs recentes. A forma
