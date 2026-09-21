@@ -23,7 +23,7 @@
 |--------|--------------------|--------------------------------|
 | [preencher] | `VendaService` | [preencher] |
 | Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | [preencher] |
-| [preencher] | `RecebimentoService` | [preencher] |
+| João Portela | `RecebimentoService` | Receber parcelas em aberto de um cliente |
 | João Pedro G. Valadares | `CaixaService` | Abertura e fechamento de caixa |
 
 ## 3. Artefatos gerados
@@ -33,6 +33,19 @@
   complementar para os demais cenários
 - Relatório de bugs: GitHub Issues do repositório do grupo
 - Este Plano de Teste (versão final no Google Docs: [preencher link])
+
+### 3.1 Artefatos de `RecebimentoService` (João Portela)
+
+- Testes unitários TU-REC-01 a TU-REC-24:
+  `src/test/java/net/originmobi/pdv/service/RecebimentoServiceTest.java`
+- Casos de teste manual CT-REC-01 a CT-REC-03 (projetados):
+  `docs/testes-manuais/CT-REC-01.md`
+- Defeitos D1, D2 e D3, com causa raiz e correção sugerida:
+  `docs/bugs/defeitos-recebimento.md`
+- Versão inicial gerada com IA, preservada:
+  `docs/ai/snapshots/RecebimentoServiceTest.v1-ia.java`
+- Descrição das alterações feitas na revisão da solução gerada com IA:
+  `docs/ai/revisao-recebimento-service.md`
 
 ## 4. Ferramentas
 
@@ -50,3 +63,20 @@
   de alta complexidade) será medida com ferramenta dedicada na Entrega 2;
   ranking desta entrega usou contagem manual de pontos de decisão como proxy
   (ver `docs/ai/AI-LOG.md`).
+
+## 6. Cobertura medida (baseline para a Entrega 2)
+
+Medição feita com JaCoCo 0.8.11 (`mvn test` → `target/site/jacoco/`), executando
+a suíte dentro do container `eclipse-temurin:8-jdk` do `docker-compose.yml`.
+
+| Classe | Arestas (branch) | Linhas | Complexidade ciclomática |
+|---|---|---|---|
+| `RecebimentoService` | 32/34 — **94,1%** | 88/91 — 96,7% | 21 |
+| `NotaFiscalItemService` | 35/40 — 87,5% | 77/79 — 97,5% | 25 |
+
+Ambas já superam o critério de 80% em todas-arestas exigido na Entrega 2 e têm
+complexidade ciclomática acima do mínimo de 10 por classe sob teste.
+
+As 2 arestas não cobertas em `RecebimentoService` foram analisadas e são
+inalcançáveis no estado atual do código — uma delas em consequência do próprio
+defeito D2. A análise está em `docs/ai/revisao-recebimento-service.md`, seção 4.
