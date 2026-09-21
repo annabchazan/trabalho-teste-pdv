@@ -175,7 +175,7 @@ public class RecebimentoServiceTest {
 
 	// TU-REC-06 - defeito D1
 	@Test
-	@Ignore("Defeito D1 - RecebimentoService:72 compara Long com != (docs/bugs/defeitos-recebimento.md)")
+	@Ignore("Defeito D1 (Issue #4) - RecebimentoService:72 compara Long com != ; ver docs/bugs/defeitos-recebimento.md")
 	public void abrirRecebimento_deveAceitarParcela_quandoClienteTemCodigoAcimaDoCacheDeLong() {
 		// Long.valueOf() so reaproveita instancias de -128 a 127; acima disso cada
 		// chamada devolve um objeto novo e a comparacao por referencia (!=) falha
@@ -416,7 +416,7 @@ public class RecebimentoServiceTest {
 
 	// TU-REC-19 - defeito D2
 	@Test
-	@Ignore("Defeito D2 - RecebimentoService:108 faz unboxing antes de testar null (docs/bugs/defeitos-recebimento.md)")
+	@Ignore("Defeito D2 (Issue #5) - RecebimentoService:108 faz unboxing antes de testar null ; ver docs/bugs/defeitos-recebimento.md")
 	public void receber_deveLancarMensagemAmigavel_quandoCodigoDoTituloENulo() {
 		try {
 			service.receber(COD_RECEBIMENTO, 100.0, 0.0, 0.0, null);
@@ -432,7 +432,7 @@ public class RecebimentoServiceTest {
 
 	// TU-REC-20 - defeito D3
 	@Test
-	@Ignore("Defeito D3 - RecebimentoService:115 consome Optional vazio com get() (docs/bugs/defeitos-recebimento.md)")
+	@Ignore("Defeito D3 (Issue #6) - RecebimentoService:115 consome Optional vazio com get() ; ver docs/bugs/defeitos-recebimento.md")
 	public void receber_deveLancarMensagemAmigavel_quandoTituloNaoExiste() {
 		when(recebimentos.findById(COD_RECEBIMENTO)).thenReturn(Optional.of(recebimentoEmAberto(100.0)));
 		when(titulos.busca(COD_TITULO)).thenReturn(Optional.empty());

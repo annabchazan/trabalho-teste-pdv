@@ -3,12 +3,12 @@
 Responsável: **João Portela** — Entrega 1, disciplina Qualidade e Teste.
 
 Os três defeitos abaixo foram encontrados durante o projeto dos casos de teste
-unitário de `RecebimentoService` (TU-REC-01..23). Cada um tem um teste
+unitário de `RecebimentoService` (TU-REC-01..24). Cada um tem um teste
 correspondente na suíte, escrito com a asserção do **comportamento correto** e
 marcado com `@Ignore` para não quebrar o build do grupo. Ao corrigir o defeito,
 basta remover a anotação e o teste passa a servir como teste de regressão.
 
-O texto de cada seção está pronto para ser colado como uma GitHub Issue.
+Os três já estão registrados como GitHub Issues: [#4](https://github.com/annabchazan/trabalho-teste-pdv/issues/4), [#5](https://github.com/annabchazan/trabalho-teste-pdv/issues/5) e [#6](https://github.com/annabchazan/trabalho-teste-pdv/issues/6).
 
 ---
 
@@ -16,6 +16,7 @@ O texto de cada seção está pronto para ser colado como uma GitHub Issue.
 
 **Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:72`
 **Teste:** TU-REC-06 (`abrirRecebimento_deveAceitarParcela_quandoClienteTemCodigoAcimaDoCacheDeLong`)
+**Issue:** [#4](https://github.com/annabchazan/trabalho-teste-pdv/issues/4)
 **Severidade:** Alta — impede o recebimento na operação real.
 
 ### Descrição
@@ -59,6 +60,7 @@ if (!parcela.getReceber().getPessoa().getCodigo().equals(codpes))
 
 **Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:108`
 **Teste:** TU-REC-19 (`receber_deveLancarMensagemAmigavel_quandoCodigoDoTituloENulo`)
+**Issue:** [#5](https://github.com/annabchazan/trabalho-teste-pdv/issues/5)
 **Severidade:** Média — validação existe, mas é inalcançável.
 
 ### Descrição
@@ -97,6 +99,7 @@ usar `Long.valueOf(0L).equals(codtitulo)`.
 
 **Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:106` e `:115`
 **Teste:** TU-REC-20 (`receber_deveLancarMensagemAmigavel_quandoTituloNaoExiste`)
+**Issue:** [#6](https://github.com/annabchazan/trabalho-teste-pdv/issues/6)
 **Severidade:** Média — erro técnico vazando para o usuário.
 
 ### Descrição
