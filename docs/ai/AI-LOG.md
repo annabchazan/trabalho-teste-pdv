@@ -85,6 +85,37 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
   atualizado. O comando `mvnw.cmd -Dtest=CaixaServiceTest test` foi executado
   com sucesso, com 4 testes executados, 0 falhas e 0 erros.
 
+### 2026-09-21 — Criação de testes unitários de VendaService
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5)
+- **Membro responsável:** Felipe Martins Bittencourt
+- **Contexto/Prompt (resumo):** Pedido para implementar os testes unitários de
+  `VendaService` seguindo o padrão já adotado em `CaixaServiceTest` e
+  `NotaFiscalItemServiceTest` (JUnit 4 + `MockitoJUnitRunner`, mocks para todas
+  as dependências, nomes de método no formato
+  `metodo_deveComportamento_quandoCondicao`). A IA leu `VendaService` e os
+  colaboradores (`VendaRepository`, `PagamentoTipoService`, `TituloService`,
+  `ParcelaService`, `CaixaLancamentoService`, `CartaoLancamentoService`,
+  `ProdutoService`), mapeou os fluxos de `abreVenda`, `busca`, `addProduto`,
+  `removeProduto`, `lista`, `qtdAbertos` e `fechaVenda` (à vista em dinheiro,
+  à vista no cartão, a prazo e pagamento misto) e propôs os cenários.
+- **Artefatos afetados:**
+  `src/test/java/net/originmobi/pdv/service/VendaServiceTest.java`,
+  `docs/ai/AI-LOG.md` e `README.md`.
+- **Validação realizada:** 32 cenários executados localmente com
+  `mvnw.cmd -Dtest=VendaServiceTest test` (32 testes, 0 falhas, 0 erros) e a
+  suíte completa com `mvnw.cmd -Dtest=VendaServiceTest,CaixaServiceTest,NotaFiscalItemServiceTest test`
+  (49 testes, 0 falhas, 0 erros). Cada asserção foi conferida manualmente
+  contra o código de produção. Seis cenários são testes de caracterização de
+  defeitos reais encontrados durante a análise (marcados com `DEFEITO` no
+  código de teste): troca dos parâmetros `acre`/`desc` nas chamadas de
+  `avistaDinheiro()` e `aprazo()`; somatório de conferência usando
+  `vlParcelas[i]` dentro do laço de índice `aux`; `vendas.fechaVenda()` dentro
+  do laço de formas de pagamento; `throw new RuntimeException()` sem mensagem
+  em `aprazo()`; e exceções silenciadas em `abreVenda`, `addProduto` e
+  `removeProduto`. Esses testes fixam o comportamento atual e devem ser
+  ajustados junto com a correção dos defeitos na Entrega 2.
+
 <!--
 Modelo de entrada para novos registros:
 
