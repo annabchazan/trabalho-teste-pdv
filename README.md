@@ -52,6 +52,11 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 
 ### Artefatos por integrante
 
+**Felipe Martins Bittencourt — `VendaService`**
+
+- Testes unitários (32 cenários): [`VendaServiceTest.java`](src/test/java/net/originmobi/pdv/service/VendaServiceTest.java)
+- Casos de teste manual CT-VENDA-01..11: [`docs/testes-manuais/CT-VENDA-01.md`](docs/testes-manuais/CT-VENDA-01.md)
+
 **Anna Beatriz Chaboudet Chazan — `NotaFiscalItemService`**
 
 - Testes unitários TU-NFI-01..13: [`NotaFiscalItemServiceTest.java`](src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemServiceTest.java)
@@ -89,7 +94,7 @@ Com um JDK 8 instalado localmente, `./mvnw test` também funciona.
 
 | Membro | Classe sob teste unitário | Funcionalidade testada manualmente |
 |--------|---------------------------|-------------------------------------|
-| Felipe Martins Bittencourt | `VendaService` | [preencher] |
+| Felipe Martins Bittencourt | `VendaService` | Realizar venda (abrir, adicionar produtos e fechar) |
 | Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | Inclusão de item em nota fiscal |
 | João Portela | `RecebimentoService` | Receber parcelas em aberto de um cliente |
 | João Pedro G. Valadares | `CaixaService` | Abertura e fechamento de caixa |

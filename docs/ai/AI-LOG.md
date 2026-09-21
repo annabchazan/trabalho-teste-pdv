@@ -152,6 +152,30 @@ contra o código de produção. Oito cenários são testes de caracterização d
   `removeProduto`. Esses testes fixam o comportamento atual e devem ser
   ajustados junto com a correção dos defeitos na Entrega 2.
 
+### 2026-09-21 — Roteiro de testes manuais de VendaService
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5)
+- **Membro responsável:** Felipe Martins Bittencourt
+- **Contexto/Prompt (resumo):** Pedido para escrever um roteiro de testes
+  manuais da funcionalidade de venda, subir a aplicação e monitorar os erros
+  durante a execução manual. A IA leu `VendaService`, `VendaController`,
+  `venda.js`, `modalPagamento.html` e as migrations `V1`/`V2` (formas de
+  pagamento `00`, `30`, `00/33` e tipos de título `DIN`, `CARTDEB`,
+  `CARTCRED`) e derivou 11 casos: fluxos principais (à vista em dinheiro,
+  a prazo, cartão de crédito), guardas de validação (venda sem valor, sem
+  caixa aberto, a prazo sem cliente) e quatro casos que exercitam pela
+  interface os defeitos já caracterizados nos testes unitários
+  (inversão desconto/acréscimo, venda mista recusada, múltiplos updates no
+  fechamento e falhas silenciadas em `addProduto`/`removeProduto`).
+- **Artefatos afetados:** `docs/testes-manuais/CT-VENDA-01.md` e `README.md`.
+- **Validação realizada:** rastreabilidade de cada caso manual conferida
+  contra os métodos de `VendaServiceTest.java`; valores esperados dos casos
+  CT-VENDA-08/09/10 conferidos contra o código de `VendaService`. A execução
+  dos casos e o preenchimento da coluna *Resultado obtido* são manuais e
+  ficam a cargo do responsável. A aplicação foi subida com
+  `docker compose up -d` e os logs do container acompanhados durante a
+  execução para capturar exceções não tratadas.
+
 <!--
 Modelo de entrada para novos registros:
 
