@@ -54,7 +54,7 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 
 | Membro | Classe sob teste unitário | Funcionalidade testada manualmente |
 |--------|---------------------------|-------------------------------------|
-| [preencher] | `VendaService` | [preencher] |
+| Felipe Martins Bittencourt | `VendaService` | [preencher] |
 | Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | [preencher] |
 | [preencher] | `RecebimentoService` | [preencher] |
 | João Pedro G. Valadares | `CaixaService` | Abertura e fechamento de caixa |
