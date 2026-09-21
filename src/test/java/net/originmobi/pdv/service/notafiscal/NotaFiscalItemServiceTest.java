@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -242,6 +243,28 @@ public class NotaFiscalItemServiceTest {
 		}
 
 		verify(totais, never()).atualiza(any(), any());
+	}
+
+	// TU-NFI-14: reproduz o defeito real encontrado manualmente no CT-NFI-02
+	// (Issue #2). Hoje NotaFiscalItemService.java:67 faz
+	// produto.getModBcIcms().getTipo() sem checar antes se o produto tem
+	// Modalidade BC ICMS cadastrada, diferente das demais validações de
+	// verificaRegraDeTributacao(); o resultado é NoSuchElementException
+	// ("No value present") em vez da mensagem de validação abaixo.
+	// @Ignore até o defeito ser corrigido — remover a anotação reproduz a falha.
+	@Ignore("Issue #2: NoSuchElementException em vez de validação amigável quando produto não tem Modalidade BC ICMS")
+	@Test
+	public void insere_deveLancarExcecao_quandoProdutoSemModalidadeBcIcms() {
+		produto.setModBcIcms(null);
+
+		try {
+			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
+			fail("Deveria ter lançado RuntimeException com mensagem de validação");
+		} catch (RuntimeException e) {
+			assertEquals("Produto sem Modalidade BC ICMS, favor verifique", e.getMessage());
+		}
+
+		verify(itemServer, never()).save(any());
 	}
 
 	// remove()
