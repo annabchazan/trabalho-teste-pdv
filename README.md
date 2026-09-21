@@ -82,7 +82,7 @@ Com um JDK 8 instalado localmente, `./mvnw test` também funciona.
 
 | Membro | Classe sob teste unitário | Funcionalidade testada manualmente |
 |--------|---------------------------|-------------------------------------|
-| [preencher] | `VendaService` | [preencher] |
+| Felipe Martins Bittencourt | `VendaService` | [preencher] |
 | Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | [preencher] |
 | João Portela | `RecebimentoService` | Receber parcelas em aberto de um cliente |
 | João Pedro G. Valadares | `CaixaService` | Abertura e fechamento de caixa |
