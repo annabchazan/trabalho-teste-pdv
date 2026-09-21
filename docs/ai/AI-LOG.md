@@ -107,7 +107,7 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
   suíte completa com `mvnw.cmd -Dtest=VendaServiceTest,CaixaServiceTest,NotaFiscalItemServiceTest test`
   (49 testes, 0 falhas, 0 erros). Cada asserção foi conferida manualmente
   contra o código de produção. Seis cenários são testes de caracterização de
-  defeitos reais encontrados durante a análise (marcados com `DEFEITO` no
+contra o código de produção. Oito cenários são testes de caracterização de
   código de teste): troca dos parâmetros `acre`/`desc` nas chamadas de
   `avistaDinheiro()` e `aprazo()`; somatório de conferência usando
   `vlParcelas[i]` dentro do laço de índice `aux`; `vendas.fechaVenda()` dentro
