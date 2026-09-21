@@ -46,7 +46,7 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 - **Registro de uso de IA:** [docs/ai/AI-LOG.md](docs/ai/AI-LOG.md)
 - **Código-fonte original:** `src/main/java/net/originmobi/pdv/`
 - **Testes unitários:** `src/test/java/net/originmobi/pdv/`
-- **Casos de teste manual (TestLink):** [link — preencher]
+- **Casos de teste manual (TestLink):** [instância da disciplina](http://vania.ic.uff.br/testlink/) — projeto `projeto_teste_anna`, caso executado CT-NFI-01 (evidência em [`docs/testes-manuais/evidencias/`](docs/testes-manuais/evidencias/))
 - **Relatório de bugs:** [Issues deste repositório](../../issues)
 - **Slides/apresentação:** [preencher diretório indicado pela professora]
 
@@ -55,7 +55,9 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 **Anna Beatriz Chaboudet Chazan — `NotaFiscalItemService`**
 
 - Testes unitários TU-NFI-01..13: [`NotaFiscalItemServiceTest.java`](src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemServiceTest.java)
-- Casos manuais CT-NFI-01/02: documentados no Plano de Teste
+- Casos de teste manual CT-NFI-01/02: [`docs/testes-manuais/CT-NFI-01.md`](docs/testes-manuais/CT-NFI-01.md)
+- CT-NFI-01 executado no TestLink (Passou): [`docs/testes-manuais/evidencias/`](docs/testes-manuais/evidencias/)
+- Defeitos encontrados: Issues [#1](../../issues/1), [#2](../../issues/2)
 
 **João Portela — `RecebimentoService`**
 
@@ -88,7 +90,7 @@ Com um JDK 8 instalado localmente, `./mvnw test` também funciona.
 | Membro | Classe sob teste unitário | Funcionalidade testada manualmente |
 |--------|---------------------------|-------------------------------------|
 | Felipe Martins Bittencourt | `VendaService` | [preencher] |
-| Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | [preencher] |
+| Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | Inclusão de item em nota fiscal |
 | João Portela | `RecebimentoService` | Receber parcelas em aberto de um cliente |
 | João Pedro G. Valadares | `CaixaService` | Abertura e fechamento de caixa |
 

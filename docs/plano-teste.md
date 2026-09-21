@@ -21,16 +21,17 @@
 
 | Membro | Classe (unitário) | Funcionalidade (teste manual) |
 |--------|--------------------|--------------------------------|
-| [preencher] | `VendaService` | [preencher] |
-| Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | [preencher] |
+| Felipe Martins Bittencourt | `VendaService` | [preencher] |
+| Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | Inclusão de item em nota fiscal |
 | João Portela | `RecebimentoService` | Receber parcelas em aberto de um cliente |
 | João Pedro G. Valadares | `CaixaService` | Abertura e fechamento de caixa |
 
 ## 3. Artefatos gerados
 
 - Casos de teste unitário: `src/test/java/...` (JUnit e Mockito)
-- Casos de teste manual: TestLink (link: [preencher]) + planilha/documento
-  complementar para os demais cenários
+- Casos de teste manual: TestLink ([instância da disciplina](http://vania.ic.uff.br/testlink/),
+  projeto `projeto_teste_anna` — caso executado CT-NFI-01) + documento
+  complementar para os demais cenários (`docs/testes-manuais/`)
 - Relatório de bugs: GitHub Issues do repositório do grupo
 - Este Plano de Teste (versão final no [Google Docs](https://docs.google.com/document/d/1oVK7AhjF8N6JUp6qeUy8XOYfglWvrWK11OmjJYEYRDw/edit?tab=t.0))
 
@@ -58,6 +59,17 @@
   `docs/testes-manuais/CT-CAIXA-01.md`.
   Os casos descrevem abertura e fechamento de caixa, mas os campos de resultado
   obtido e status só serão preenchidos durante a execução manual.
+
+### 3.3 Artefatos de `NotaFiscalItemService` (Anna Beatriz Chaboudet Chazan)
+
+- Testes unitários TU-NFI-01 a TU-NFI-13:
+  `src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemServiceTest.java`
+- Casos de teste manual CT-NFI-01 e CT-NFI-02, executados:
+  `docs/testes-manuais/CT-NFI-01.md`
+- CT-NFI-01 cadastrado e executado no TestLink (Passou):
+  `docs/testes-manuais/evidencias/testlink-ct-nfi-01-design.pdf` e
+  `docs/testes-manuais/evidencias/testlink-ct-nfi-01-execucao.pdf`
+- Defeitos encontrados durante a execução manual: Issues #1 e #2
 
 ## 4. Ferramentas
 
