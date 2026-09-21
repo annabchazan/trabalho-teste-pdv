@@ -24,11 +24,11 @@
 | [preencher] | `VendaService` | [preencher] |
 | Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | [preencher] |
 | João Portela | `RecebimentoService` | Receber parcelas em aberto de um cliente |
-| [preencher] | `CaixaService` | [preencher] |
+| João Pedro G. Valadares | `CaixaService` | Abertura e fechamento de caixa |
 
 ## 3. Artefatos gerados
 
-- Casos de teste unitário: `src/test/java/...` (JUnit)
+- Casos de teste unitário: `src/test/java/...` (JUnit e Mockito)
 - Casos de teste manual: TestLink (link: [preencher]) + planilha/documento
   complementar para os demais cenários
 - Relatório de bugs: GitHub Issues do repositório do grupo
@@ -50,7 +50,7 @@
 ## 4. Ferramentas
 
 - **Build/execução:** Maven (`mvnw`), Docker Compose (MySQL)
-- **Teste unitário:** JUnit (+ Mockito na Entrega 2, para isolar dependências)
+- **Teste unitário:** JUnit e Mockito (isolamento das dependências)
 - **Teste manual:** TestLink (ao menos 1 cenário obrigatório)
 - **Bug tracking:** GitHub Issues
 - **Controle de versão / colaboração:** Git + GitHub

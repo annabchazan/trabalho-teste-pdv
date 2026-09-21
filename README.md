@@ -85,5 +85,5 @@ Com um JDK 8 instalado localmente, `./mvnw test` também funciona.
 | [preencher] | `VendaService` | [preencher] |
 | Anna Beatriz Chaboudet Chazan | `NotaFiscalItemService` | [preencher] |
 | João Portela | `RecebimentoService` | Receber parcelas em aberto de um cliente |
-| [preencher] | `CaixaService` | [preencher] |
+| João Pedro G. Valadares | `CaixaService` | Abertura e fechamento de caixa |
 
