@@ -40,7 +40,7 @@ docker compose up -d
 Fork do software original ([repo-software-testing-courses/pdv](https://github.com/repo-software-testing-courses/pdv))
 usado como alvo de teste na disciplina Qualidade e Teste.
 
-## Artefatos da Entrega 1
+## Artefatos das Entregas 1 e 2
 
 - **Plano de Teste:** [docs/plano-teste.md](docs/plano-teste.md) (versão final colaborativa: [Google Docs](https://docs.google.com/document/d/1oVK7AhjF8N6JUp6qeUy8XOYfglWvrWK11OmjJYEYRDw/edit?tab=t.0))
 - **Registro de uso de IA:** [docs/ai/AI-LOG.md](docs/ai/AI-LOG.md)
@@ -59,7 +59,10 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 
 **Anna Beatriz Chaboudet Chazan — `NotaFiscalItemService`**
 
-- Testes unitários TU-NFI-01..13: [`NotaFiscalItemServiceTest.java`](src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemServiceTest.java)
+- Testes unitários TU-NFI-01..24: [`NotaFiscalItemServiceTest.java`](src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemServiceTest.java)
+- Testes de integração TI-NFI-01..05: [`NotaFiscalItemServiceIT.java`](src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemServiceIT.java)
+- Testes de sistema (Selenium) TS-NFI-01..05: [`NotaFiscalItemSistemaIT.java`](src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemSistemaIT.java)
+- Evidências de JaCoCo, PIT e SonarQube, antes e depois dos testes novos: [`docs/evidencias/entrega2/`](docs/evidencias/entrega2/)
 - Casos de teste manual CT-NFI-01/02: [`docs/testes-manuais/CT-NFI-01.md`](docs/testes-manuais/CT-NFI-01.md)
 - CT-NFI-01 executado no TestLink (Passou): [`docs/testes-manuais/evidencias/`](docs/testes-manuais/evidencias/)
 - Defeitos encontrados: Issues [#1](../../issues/1), [#2](../../issues/2)
