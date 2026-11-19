@@ -100,12 +100,7 @@ public class NotaFiscalItemServiceIT {
 		NotaFiscalTotaisServer totais = new NotaFiscalTotaisServer();
 		ReflectionTestUtils.setField(totais, "totais", totaisRepository);
 
-		NotaFiscalItemService itemService = new NotaFiscalItemService();
-		ReflectionTestUtils.setField(itemService, "itemServer", itemRepository);
-		ReflectionTestUtils.setField(itemService, "impostos", impostos);
-		ReflectionTestUtils.setField(itemService, "totais", totais);
-		ReflectionTestUtils.setField(itemService, "produtos", produtos);
-		ReflectionTestUtils.setField(itemService, "notas", notas);
+		NotaFiscalItemService itemService = new NotaFiscalItemService(itemRepository, impostos, totais, produtos, notas);
 
 		NotaFiscal nota = notaEmMemoria();
 		when(produtos.buscaProduto(COD_PRODUTO)).thenReturn(Optional.of(produtoEmMemoria()));
