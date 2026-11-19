@@ -32,6 +32,16 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
+
+		<!-- Selenium 4.13 é a última versão compatível com Java 8; netty atualizado para a versão que ela exige -->
+		<selenium.version>4.13.0</selenium.version>
+		<netty.version>4.1.100.Final</netty.version>
+
+		<!-- SonarQube (servidor local via Docker) -->
+		<sonar.host.url>http://localhost:9000</sonar.host.url>
+		<sonar.projectKey>trabalho-teste-pdv</sonar.projectKey>
+		<sonar.projectName>trabalho-teste-pdv</sonar.projectName>
+		<sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -114,6 +124,12 @@
 			<artifactId>xstream</artifactId>
 			<version>1.4.19</version>
 		</dependency>
+		<!-- Testes de sistema (Selenium) -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<!-- Dependência do container integrado -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -153,6 +169,54 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.5</version>
+			</plugin>
+
+			<!-- Testes de integração e de sistema: classes *IT.java, executadas em "mvn verify" -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>3.2.5</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Teste de mutação: mvn test-compile org.pitest:pitest-maven:mutationCoverage -->
+			<plugin>
+				<groupId>org.pitest</groupId>
+				<artifactId>pitest-maven</artifactId>
+				<version>1.15.8</version>
+				<configuration>
+					<targetClasses>
+						<param>net.originmobi.pdv.service.VendaService</param>
+						<param>net.originmobi.pdv.service.notafiscal.NotaFiscalItemService</param>
+						<param>net.originmobi.pdv.service.RecebimentoService</param>
+						<param>net.originmobi.pdv.service.CaixaService</param>
+					</targetClasses>
+					<targetTests>
+						<param>net.originmobi.pdv.service.VendaServiceTest</param>
+						<param>net.originmobi.pdv.service.notafiscal.NotaFiscalItemServiceTest</param>
+						<param>net.originmobi.pdv.service.RecebimentoServiceTest</param>
+						<param>net.originmobi.pdv.service.CaixaServiceTest</param>
+					</targetTests>
+					<outputFormats>
+						<param>HTML</param>
+						<param>XML</param>
+					</outputFormats>
+					<timestampedReports>false</timestampedReports>
+				</configuration>
+			</plugin>
+
+			<!-- Inspeção de código: mvn sonar:sonar (requer Java 21 e SonarQube em localhost:9000; ver README) -->
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>5.1.0.4751</version>
 			</plugin>
 		</plugins>
 	</build>

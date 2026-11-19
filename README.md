@@ -90,6 +90,37 @@ Relatório de cobertura JaCoCo gerado em `target/site/jacoco/index.html`.
 
 Com um JDK 8 instalado localmente, `./mvnw test` também funciona.
 
+### Teste de mutação (PIT)
+
+O plugin já está configurado com as 4 classes do grupo. Para rodar só a sua classe:
+
+```sh
+mvn test-compile org.pitest:pitest-maven:mutationCoverage -DtargetClasses=net.originmobi.pdv.service.notafiscal.NotaFiscalItemService -DtargetTests=net.originmobi.pdv.service.notafiscal.NotaFiscalItemServiceTest
+```
+
+Sem os parâmetros `-D`, roda nas 4 classes. Relatório em `target/pit-reports/index.html`.
+
+### Testes de integração e de sistema (Selenium)
+
+Classes com sufixo `IT` (ex.: `NotaFiscalItemServiceIT.java`) não rodam no `mvn test`; rodam com `mvn verify`.
+O Selenium 4.13 baixa o ChromeDriver automaticamente (precisa do Chrome instalado e da aplicação rodando em `http://localhost:8080`).
+
+### Inspeção de código (SonarQube)
+
+O scanner exige Java 21, então a análise roda em um container separado, depois do `mvn test` com Java 8:
+
+```sh
+docker run -d --name sonarqube -p 9000:9000 sonarqube:community
+```
+
+Acesse `http://localhost:9000` (usuário `admin`, senha `admin`), gere um token em *My Account > Security* e rode:
+
+```sh
+docker run --rm --network host -v "$PWD":/app -w /app -v pdv-m2:/root/.m2 maven:3.9-eclipse-temurin-21 mvn -B sonar:sonar -Dsonar.token=SEU_TOKEN
+```
+
+No Windows/macOS, troque `--network host` por `-Dsonar.host.url=http://host.docker.internal:9000`.
+
 ## Responsabilidades por membro
 
 | Membro | Classe sob teste unitário | Funcionalidade testada manualmente |

@@ -27,3 +27,7 @@ target/
 
 # Eclipse / VS Code Java extension build output
 bin/
+
+# SonarQube scanner
+.sonar/
+.scannerwork/
