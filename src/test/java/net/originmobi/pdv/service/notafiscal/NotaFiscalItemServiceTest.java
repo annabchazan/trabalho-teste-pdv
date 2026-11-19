@@ -1,17 +1,19 @@
 package net.originmobi.pdv.service.notafiscal;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyChar;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -23,6 +25,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -47,7 +51,10 @@ import net.originmobi.pdv.model.TributacaoRegra;
 import net.originmobi.pdv.repository.notafiscal.NotaFiscalItemRepository;
 import net.originmobi.pdv.service.ProdutoService;
 
-
+/**
+ * Testes unitários de NotaFiscalItemService. Todas as dependências são
+ * substituídas por mocks; os IDs TU-NFI-xx correspondem ao Plano de Teste.
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class NotaFiscalItemServiceTest {
 
@@ -71,44 +78,64 @@ public class NotaFiscalItemServiceTest {
 
 	private static final Long COD_PRODUTO = 1L;
 	private static final Long COD_NOTA = 10L;
+	private static final Long COD_ITEM = 50L;
 	private static final String UF_DESTINATARIO = "SP";
+	private static final Double VALOR_VENDA = 10.0;
 
 	private Produto produto;
 	private NotaFiscal notaFiscal;
+	private NotaFiscalItemImposto impostoCalculado;
 
 	@Before
 	public void setUp() {
 		produto = produtoValido();
 		notaFiscal = notaFiscalValida(NotaFiscalTipo.SAIDA, new ArrayList<>());
+		impostoCalculado = new NotaFiscalItemImposto();
 
 		when(produtos.buscaProduto(COD_PRODUTO)).thenReturn(Optional.of(produto));
 		when(notas.busca(COD_NOTA)).thenReturn(Optional.of(notaFiscal));
 		when(impostos.calcula(any(), anyDouble(), any(TributacaoRegra.class), anyChar(), anyInt()))
-				.thenReturn(new NotaFiscalItemImposto());
+				.thenReturn(impostoCalculado);
 	}
 
-	// caminho feliz
+	// insere(): caminho feliz
 
+	// TU-NFI-01
 	@Test
 	public void insere_deveCriarNovoItemEAtualizarTotais_quandoDadosValidos() {
+		TributacaoRegra regraSaida = produto.getTributacao().getRegra().get(0);
+
 		String retorno = service.insere(COD_PRODUTO, COD_NOTA, 3, NotaFiscalTipo.SAIDA);
 
 		assertEquals("ok", retorno);
 
-		// item novo -> qtd = informada, valor total = qtd * valor de venda, sem codigo ainda
-		verify(itemServer, times(1)).save(argThat(item -> item.getQtd() == 3
-				&& item.getVlTotal().equals(3 * produto.getValor_venda()) && item.getCodigo() == null));
+		// imposto calculado com: item novo (sem código), total = 3 x 10, a regra da UF,
+		// origem = 1º dígito do CST ("0102") e o tipo da Modalidade BC ICMS
+		verify(impostos).calcula(null, 30.0, regraSaida, '0', 0);
 
-		verify(totais, times(1)).atualiza(eq(COD_NOTA), any(NotaFiscalTotais.class));
+		NotaFiscalItem salvo = itemSalvo();
+		assertNull(salvo.getCodigo());
+		assertEquals(COD_PRODUTO, salvo.getCodProd());
+		assertEquals(3, salvo.getQtd());
+		assertEquals(3, salvo.getQtd_tribu());
+		assertEquals(Double.valueOf(30.0), salvo.getVlTotal());
+		assertEquals(VALOR_VENDA, salvo.getV_uniTribu());
+		assertEquals("UN", salvo.getUnidade_tribu());
+		assertEquals("5102", salvo.getCfop());
+		assertSame(notaFiscal, salvo.getNotaFiscal());
+		assertSame(impostoCalculado, salvo.getImpostos());
+
+		verify(totais).atualiza(COD_NOTA, notaFiscal.getTotais());
 	}
 
+	// TU-NFI-02
 	@Test
 	public void insere_deveSomarQuantidadeEManterCodigo_quandoProdutoJaEstaNaNota() {
-		// nota ja tem esse produto lancado (qtd 5, codigo 99) -> inserir de novo deveria só atualizar
+		// a nota já tem esse produto lançado (qtd 5, item 99, imposto 77)
 		NotaFiscalItemImposto impostoExistente = new NotaFiscalItemImposto();
 		impostoExistente.setCodigo(77L);
 
-		NotaFiscalItem itemExistente = new NotaFiscalItem(COD_PRODUTO, 5, 50.0, "UN", 5, 10.0, notaFiscal,
+		NotaFiscalItem itemExistente = new NotaFiscalItem(COD_PRODUTO, 5, 50.0, "UN", 5, VALOR_VENDA, notaFiscal,
 				impostoExistente, "5102");
 		itemExistente.setCodigo(99L);
 
@@ -116,137 +143,123 @@ public class NotaFiscalItemServiceTest {
 
 		service.insere(COD_PRODUTO, COD_NOTA, 3, NotaFiscalTipo.SAIDA);
 
-		verify(itemServer).save(argThat(item -> item.getQtd() == 8 // 5 + 3
-				&& Long.valueOf(99L).equals(item.getCodigo()))); // mantem o codigo do item existente
+		// recalcula sobre o imposto existente, com o total da quantidade somada (8 x 10)
+		verify(impostos).calcula(77L, 80.0, produto.getTributacao().getRegra().get(0), '0', 0);
+
+		NotaFiscalItem salvo = itemSalvo();
+		assertEquals(Long.valueOf(99L), salvo.getCodigo());
+		assertEquals(8, salvo.getQtd());
+		assertEquals(Double.valueOf(80.0), salvo.getVlTotal());
+
+		verify(totais).atualiza(COD_NOTA, notaFiscal.getTotais());
 	}
 
-	// validacoes de verificaRegraDeTributacao() - cada throw do metodo vira um teste aqui
+	// insere(): validações de verificaRegraDeTributacao()
 
+	// TU-NFI-03
 	@Test
 	public void insere_deveLancarExcecao_quandoProdutoNaoEncontrado() {
 		when(produtos.buscaProduto(COD_PRODUTO)).thenReturn(Optional.empty());
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
-			fail("Deveria ter lançado RuntimeException");
-		} catch (RuntimeException e) {
-			assertEquals("Nenhum produto encontrado, favor verifique", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.SAIDA, "Nenhum produto encontrado, favor verifique");
 
-		verify(itemServer, never()).save(any());
+		verificaQueNadaFoiGravado();
 	}
 
+	// TU-NFI-04
 	@Test
 	public void insere_deveLancarExcecao_quandoProdutoSemTributacao() {
 		produto.setTributacao(null);
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
-			fail("Deveria ter lançado RuntimeException");
-		} catch (RuntimeException e) {
-			assertEquals("Produto sem tributação, favor verifique", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.SAIDA, "Produto sem tributação, favor verifique");
+
+		verificaQueNadaFoiGravado();
 	}
 
+	// TU-NFI-05
 	@Test
 	public void insere_deveLancarExcecao_quandoProdutoSemNcm() {
 		produto.setNcm("");
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
-			fail("Deveria ter lançado RuntimeException");
-		} catch (RuntimeException e) {
-			assertEquals("Produto sem código NCM, favor verifique", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.SAIDA, "Produto sem código NCM, favor verifique");
+
+		verificaQueNadaFoiGravado();
 	}
 
+	// TU-NFI-06
 	@Test
 	public void insere_deveLancarExcecao_quandoSubstitutoTributarioSemCest() {
 		produto.setSubtributaria(ProdutoSubstTributaria.SIM);
 		produto.setCest("");
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
-			fail("Deveria ter lançado RuntimeException");
-		} catch (RuntimeException e) {
-			assertEquals("Produto de substituição tributária sem código CEST, favor verifique", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.SAIDA,
+				"Produto de substituição tributária sem código CEST, favor verifique");
+
+		verificaQueNadaFoiGravado();
 	}
 
+	// TU-NFI-07
 	@Test
 	public void insere_deveLancarExcecao_quandoProdutoSemUnidade() {
 		produto.setUnidade("");
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
-			fail("Deveria ter lançado RuntimeException");
-		} catch (RuntimeException e) {
-			assertEquals("Produto sem unidade, favor verifique", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.SAIDA, "Produto sem unidade, favor verifique");
+
+		verificaQueNadaFoiGravado();
 	}
 
+	// TU-NFI-08
 	@Test
 	public void insere_deveLancarExcecao_quandoTributacaoSemRegraDeSaida() {
 		// tributação só possui regra de ENTRADA, mas a nota é de SAIDA
 		produto.getTributacao().setRegra(new ArrayList<>(Arrays.asList(regra(EntradaSaida.ENTRADA, UF_DESTINATARIO))));
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
-			fail("Deveria ter lançado RuntimeException");
-		} catch (RuntimeException e) {
-			assertEquals("Tributação sem regra de saída, verifique", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.SAIDA, "Tributação sem regra de saída, verifique");
+
+		verificaQueNadaFoiGravado();
 	}
 
+	// TU-NFI-09
 	@Test
 	public void insere_deveLancarExcecao_quandoTributacaoSemRegraDeEntrada() {
 		notaFiscal.setTipo(NotaFiscalTipo.ENTRADA);
 		// tributação só possui regra de SAIDA, mas a nota é de ENTRADA
 		produto.getTributacao().setRegra(new ArrayList<>(Arrays.asList(regra(EntradaSaida.SAIDA, UF_DESTINATARIO))));
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.ENTRADA);
-			fail("Deveria ter lançado RuntimeException");
-		} catch (RuntimeException e) {
-			assertEquals("Tributação sem regra de entrada, verifique", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.ENTRADA, "Tributação sem regra de entrada, verifique");
+
+		verificaQueNadaFoiGravado();
 	}
 
-	// a regra bate com o tipo (saida/entrada) mas nao com a UF do destinatario
+	// insere(): regra do tipo certo, mas de outra UF
 
+	// TU-NFI-10
 	@Test
 	public void insere_deveLancarExcecao_quandoNenhumaRegraCasaComUfDoDestinatario() {
 		// regra existe e satisfaz a verificação inicial (SAIDA), mas é de outra UF
 		produto.getTributacao().setRegra(new ArrayList<>(Arrays.asList(regra(EntradaSaida.SAIDA, "RJ"))));
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
-			fail("Deveria ter lançado RuntimeException");
-		} catch (RuntimeException e) {
-			assertEquals("Nenhuma regra de tributação cadastrada para a UF do destinatário", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.SAIDA, "Nenhuma regra de tributação cadastrada para a UF do destinatário");
 
-		verify(itemServer, never()).save(any());
+		verificaQueNadaFoiGravado();
 	}
 
-	// se o repositorio explodir, tem que virar uma mensagem amigavel, nao vazar a exception
+	// insere(): falha do repositório vira mensagem amigável
 
+	// TU-NFI-11
 	@Test
 	public void insere_deveEncapsularExcecao_quandoRepositorioFalhaAoSalvar() {
 		doThrow(new RuntimeException("erro de conexão")).when(itemServer).save(any(NotaFiscalItem.class));
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
-			fail("Deveria ter lançado RuntimeException");
-		} catch (RuntimeException e) {
-			assertEquals("Erro ao salvar item na nota, chame o suporte", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.SAIDA, "Erro ao salvar item na nota, chame o suporte");
 
-		verify(totais, never()).atualiza(any(), any());
+		// tentou salvar uma vez e não atualizou os totais de uma nota inconsistente
+		verify(itemServer, times(1)).save(any(NotaFiscalItem.class));
+		verifyNoInteractions(totais);
 	}
 
 	// TU-NFI-14: reproduz o defeito real encontrado manualmente no CT-NFI-02
-	// (Issue #2). Hoje NotaFiscalItemService.java:67 faz
+	// (Issue #2). Hoje NotaFiscalItemService faz
 	// produto.getModBcIcms().getTipo() sem checar antes se o produto tem
 	// Modalidade BC ICMS cadastrada, diferente das demais validações de
 	// verificaRegraDeTributacao(); o resultado é NoSuchElementException
@@ -257,49 +270,70 @@ public class NotaFiscalItemServiceTest {
 	public void insere_deveLancarExcecao_quandoProdutoSemModalidadeBcIcms() {
 		produto.setModBcIcms(null);
 
-		try {
-			service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
-			fail("Deveria ter lançado RuntimeException com mensagem de validação");
-		} catch (RuntimeException e) {
-			assertEquals("Produto sem Modalidade BC ICMS, favor verifique", e.getMessage());
-		}
+		insereEsperandoErro(NotaFiscalTipo.SAIDA, "Produto sem Modalidade BC ICMS, favor verifique");
 
-		verify(itemServer, never()).save(any());
+		verificaQueNadaFoiGravado();
 	}
 
 	// remove()
 
+	// TU-NFI-12
 	@Test
 	public void remove_deveRemoverItemEAtualizarTotaisDaNota() {
-		when(notas.busca(COD_NOTA)).thenReturn(Optional.of(notaFiscal));
+		service.remove(COD_ITEM, COD_NOTA);
 
-		service.remove(50L, COD_NOTA);
-
-		verify(itemServer, times(1)).deleteById(50L);
-		verify(totais, times(1)).atualiza(eq(COD_NOTA), any(NotaFiscalTotais.class));
+		// remove o item e só depois recalcula os totais da mesma nota
+		InOrder ordem = inOrder(itemServer, notas, totais);
+		ordem.verify(itemServer).deleteById(COD_ITEM);
+		ordem.verify(notas).busca(COD_NOTA);
+		ordem.verify(totais).atualiza(COD_NOTA, notaFiscal.getTotais());
 	}
 
+	// TU-NFI-13
 	@Test
 	public void remove_deveEncapsularExcecao_quandoRepositorioFalhaAoRemover() {
-		doThrow(new RuntimeException("erro de conexão")).when(itemServer).deleteById(50L);
+		doThrow(new RuntimeException("erro de conexão")).when(itemServer).deleteById(COD_ITEM);
 
 		try {
-			service.remove(50L, COD_NOTA);
+			service.remove(COD_ITEM, COD_NOTA);
 			fail("Deveria ter lançado RuntimeException");
 		} catch (RuntimeException e) {
 			assertEquals("Erro ao tentar remover o item da nota, chame o suporte", e.getMessage());
 		}
 
-		verify(totais, never()).atualiza(any(), any());
+		// sem remoção, a nota não é consultada nem tem os totais recalculados
+		verify(notas, never()).busca(any());
+		verifyNoInteractions(totais);
 	}
 
-	// fixtures usadas pelos testes acima
+	// apoio
+
+	private void insereEsperandoErro(NotaFiscalTipo tipo, String mensagemEsperada) {
+		try {
+			service.insere(COD_PRODUTO, COD_NOTA, 1, tipo);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertEquals(mensagemEsperada, e.getMessage());
+		}
+	}
+
+	private void verificaQueNadaFoiGravado() {
+		verifyNoInteractions(itemServer, impostos, totais);
+	}
+
+	private NotaFiscalItem itemSalvo() {
+		ArgumentCaptor<NotaFiscalItem> captor = ArgumentCaptor.forClass(NotaFiscalItem.class);
+		verify(itemServer, times(1)).save(captor.capture());
+		return captor.getValue();
+	}
+
+	// fixtures
 
 	private Produto produtoValido() {
 		Produto p = new Produto();
 		p.setCodigo(COD_PRODUTO);
 		p.setDescricao("Produto de teste");
-		p.setValor_venda(10.0);
+		p.setValor_venda(VALOR_VENDA);
 		p.setUnidade("UN");
 		p.setNcm("12345678");
 		p.setCest("");
