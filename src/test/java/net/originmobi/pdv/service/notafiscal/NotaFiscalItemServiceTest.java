@@ -275,6 +275,127 @@ public class NotaFiscalItemServiceTest {
 		verificaQueNadaFoiGravado();
 	}
 
+	// insere(): mais de um item na nota e mais de uma regra na tributação
+
+	// TU-NFI-15
+	@Test
+	public void insere_deveSomarSomenteOItemDoMesmoProduto_quandoNotaTemVariosItens() {
+		NotaFiscalItemImposto impostoOutro = new NotaFiscalItemImposto();
+		impostoOutro.setCodigo(66L);
+		NotaFiscalItem outroProduto = new NotaFiscalItem(2L, 4, 80.0, "UN", 4, 20.0, notaFiscal, impostoOutro, "5102");
+		outroProduto.setCodigo(98L);
+
+		NotaFiscalItemImposto impostoExistente = new NotaFiscalItemImposto();
+		impostoExistente.setCodigo(77L);
+		NotaFiscalItem mesmoProduto = new NotaFiscalItem(COD_PRODUTO, 5, 50.0, "UN", 5, VALOR_VENDA, notaFiscal,
+				impostoExistente, "5102");
+		mesmoProduto.setCodigo(99L);
+
+		notaFiscal.setItens(new ArrayList<>(Arrays.asList(outroProduto, mesmoProduto)));
+
+		service.insere(COD_PRODUTO, COD_NOTA, 3, NotaFiscalTipo.SAIDA);
+
+		// soma só com o item do mesmo produto (5 + 3), ignorando o outro
+		verify(impostos).calcula(77L, 80.0, produto.getTributacao().getRegra().get(0), '0', 0);
+
+		NotaFiscalItem salvo = itemSalvo();
+		assertEquals(Long.valueOf(99L), salvo.getCodigo());
+		assertEquals(8, salvo.getQtd());
+	}
+
+	// TU-NFI-16
+	@Test
+	public void insere_deveIgnorarRegraDaMesmaUfDeOutroTipo() {
+		TributacaoRegra regraEntrada = regra(EntradaSaida.ENTRADA, UF_DESTINATARIO, "1102");
+		TributacaoRegra regraSaida = regra(EntradaSaida.SAIDA, UF_DESTINATARIO, "5102");
+		produto.getTributacao().setRegra(new ArrayList<>(Arrays.asList(regraEntrada, regraSaida)));
+
+		service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
+
+		verify(impostos).calcula(null, 10.0, regraSaida, '0', 0);
+		assertEquals("5102", itemSalvo().getCfop());
+	}
+
+	// TU-NFI-17
+	@Test
+	public void insere_deveEscolherARegraDaUfDoDestinatario_quandoHaVariasRegras() {
+		TributacaoRegra regraRj = regra(EntradaSaida.SAIDA, "RJ", "6101");
+		TributacaoRegra regraMg = regra(EntradaSaida.SAIDA, "MG", "6102");
+		TributacaoRegra regraSp = regra(EntradaSaida.SAIDA, UF_DESTINATARIO, "5102");
+		produto.getTributacao().setRegra(new ArrayList<>(Arrays.asList(regraRj, regraMg, regraSp)));
+
+		service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA);
+
+		verify(impostos).calcula(null, 10.0, regraSp, '0', 0);
+		assertEquals("5102", itemSalvo().getCfop());
+	}
+
+	// insere(): substituição tributária x CEST (tabela de decisão R2 e R3)
+
+	// TU-NFI-18
+	@Test
+	public void insere_deveAceitarSubstitutoTributario_quandoCestPreenchido() {
+		produto.setSubtributaria(ProdutoSubstTributaria.SIM);
+		produto.setCest("0100100");
+
+		assertEquals("ok", service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA));
+
+		itemSalvo();
+		verify(totais).atualiza(COD_NOTA, notaFiscal.getTotais());
+	}
+
+	// TU-NFI-19
+	@Test
+	public void insere_deveAceitarProdutoSemSubstituicaoTributaria_quandoCestVazio() {
+		produto.setSubtributaria(ProdutoSubstTributaria.NAO);
+		produto.setCest("");
+
+		assertEquals("ok", service.insere(COD_PRODUTO, COD_NOTA, 1, NotaFiscalTipo.SAIDA));
+
+		itemSalvo();
+		verify(totais).atualiza(COD_NOTA, notaFiscal.getTotais());
+	}
+
+	// insere(): nota de entrada (tabela de decisão R6)
+
+	// TU-NFI-20
+	@Test
+	public void insere_deveCriarItem_quandoNotaDeEntradaComRegraDeEntrada() {
+		notaFiscal.setTipo(NotaFiscalTipo.ENTRADA);
+		TributacaoRegra regraEntrada = regra(EntradaSaida.ENTRADA, UF_DESTINATARIO, "1102");
+		produto.getTributacao().setRegra(new ArrayList<>(Arrays.asList(regraEntrada)));
+
+		assertEquals("ok", service.insere(COD_PRODUTO, COD_NOTA, 2, NotaFiscalTipo.ENTRADA));
+
+		verify(impostos).calcula(null, 20.0, regraEntrada, '0', 0);
+		NotaFiscalItem salvo = itemSalvo();
+		assertEquals("1102", salvo.getCfop());
+		assertEquals(2, salvo.getQtd());
+		verify(totais).atualiza(COD_NOTA, notaFiscal.getTotais());
+	}
+
+	// insere(): valor limite da quantidade. insere() não valida qtd, então qtd <= 0
+	// é gravada como item válido (com total zero ou negativo).
+	// @Ignore até o defeito ser corrigido — remover a anotação reproduz a falha.
+
+	// TU-NFI-21
+	@Ignore("Defeito: insere aceita qtd = 0")
+	@Test
+	public void insere_deveRejeitarQuantidadeZero() {
+		insereComQuantidadeEsperandoErro(0);
+
+		verificaQueNadaFoiGravado();
+	}
+
+	// TU-NFI-22
+	@Ignore("Defeito: insere aceita qtd negativa")
+	@Test
+	public void insere_deveRejeitarQuantidadeNegativa() {
+		insereComQuantidadeEsperandoErro(-1);
+
+		verificaQueNadaFoiGravado();
+	}
+
 	// remove()
 
 	// TU-NFI-12
@@ -306,7 +427,42 @@ public class NotaFiscalItemServiceTest {
 		verifyNoInteractions(totais);
 	}
 
+	// TU-NFI-24
+	@Test
+	public void remove_naoDeveAtualizarTotais_quandoNotaNaoEncontrada() {
+		when(notas.busca(COD_NOTA)).thenReturn(Optional.empty());
+
+		try {
+			service.remove(COD_ITEM, COD_NOTA);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			// esperado
+		}
+
+		verifyNoInteractions(totais);
+	}
+
+	// buscaItensNota()
+
+	// TU-NFI-23
+	@Test
+	public void buscaItensNota_deveRetornarOsItensDoRepositorio() {
+		List<Object> itens = new ArrayList<>(Arrays.asList(new Object(), new Object()));
+		when(itemServer.findByNotaFiscalCodigoEquals(COD_NOTA)).thenReturn(itens);
+
+		assertSame(itens, service.buscaItensNota(COD_NOTA));
+	}
+
 	// apoio
+
+	private void insereComQuantidadeEsperandoErro(int qtd) {
+		try {
+			service.insere(COD_PRODUTO, COD_NOTA, qtd, NotaFiscalTipo.SAIDA);
+			fail("Deveria ter lançado RuntimeException para qtd = " + qtd);
+		} catch (RuntimeException e) {
+			// esperado
+		}
+	}
 
 	private void insereEsperandoErro(NotaFiscalTipo tipo, String mensagemEsperada) {
 		try {
@@ -352,6 +508,10 @@ public class NotaFiscalItemServiceTest {
 	}
 
 	private TributacaoRegra regra(EntradaSaida tipo, String ufSigla) {
+		return regra(tipo, ufSigla, "5102");
+	}
+
+	private TributacaoRegra regra(EntradaSaida tipo, String ufSigla, String codigoCfop) {
 		TributacaoRegra regra = new TributacaoRegra();
 		regra.setTipo(tipo);
 
@@ -360,7 +520,7 @@ public class NotaFiscalItemServiceTest {
 		regra.setUf(uf);
 
 		CFOP cfop = new CFOP();
-		cfop.setCfop("5102");
+		cfop.setCfop(codigoCfop);
 		regra.setCfop(cfop);
 
 		CstCsosn cst = new CstCsosn();
