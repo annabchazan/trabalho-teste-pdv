@@ -6,6 +6,23 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
 
 ## Entradas
 
+### 2026-11-20 — Planejamento da Entrega 2 e preparação de VendaService
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
+- **Membro responsável:** Felipe Martins Bittencourt
+- **Contexto/Prompt (resumo):** Pedido de proposta de conteúdo para o Google
+  Docs e de divisão da Entrega 2 em etapas. Foi estabelecida a regra de que a
+  IA não executa nenhuma etapa sem aprovação, e de que toda decisão é
+  registrada.
+- **Artefatos afetados:** [`decisoes-entrega2-venda.md`](decisoes-entrega2-venda.md)
+  (registro detalhado das decisões D-01 a D-05) e este registro.
+- **Decisão:** ver o registro detalhado. Em resumo: plano em 9 etapas, manter
+  `VendaService`, trabalhar na branch `test/venda-service-entrega2` e medir a
+  linha de base antes de alterar os testes.
+- **Validação realizada:** a complexidade foi estimada por contagem de pontos
+  de decisão e será confirmada pelo Sonar. A configuração de build já existente
+  (JaCoCo, PIT, failsafe) foi conferida no `pom.xml`.
+
 ### 2026-09-21 - Ampliação dos testes e documentação de CaixaService
 
 - **Ferramenta:** Codex (OpenAI)
