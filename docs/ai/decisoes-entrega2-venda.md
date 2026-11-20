@@ -344,4 +344,79 @@ de `VendaService` não precisa alterar o build.
   responsável e sem coautoria da IA.
 - **Alternativa apresentada:** revisar as alterações antes.
 - **Decisão:** commitar.
+- **Efeito:** commit local `838c831`, ainda não enviado ao remoto.
+
+## 2026-11-20 — Etapas 3 e 4: Teste estrutural e teste de mutação
+
+### D-16 — Escopo da documentação e das evidências
+
+- **Contexto:** as metas já tinham sido atingidas nas Etapas 1 e 2, com 100%
+  de ramos e 91% de escore de mutação. As Etapas 3 e 4 ficam para documentar
+  e justificar esses números, com evidências do antes e do depois.
+- **Proposta, uma decisão por item:**
+  1. **Grafo de fluxo de controle** de `fechaVenda`, `avistaDinheiro` e
+     `aprazo`, com cada aresta ligada ao teste que passa por ela. Alternativa
+     recusada: fazer o grafo de todos os 11 métodos.
+  2. **Prints** gerados automaticamente com o Chrome sem janela, a partir dos
+     relatórios HTML. O "antes" vem dos testes da Entrega 1 (commit `325d7ac`),
+     rodados numa cópia temporária fora do repositório. Alternativa recusada:
+     o responsável tirar os prints manualmente. O Sonar continua manual,
+     porque exige login.
+  3. **Operadores de mutação:** o conjunto padrão do PIT (DEFAULTS),
+     configurado pelo grupo, para os escores serem comparáveis entre as
+     classes. Alternativa recusada: o conjunto STRONGER.
+  4. **Documento:** um arquivo só, `docs/teste-estrutural-mutacao-venda.md`,
+     para as duas etapas. Alternativa recusada: um arquivo por etapa.
+- **Decisão:** aprovado como proposto.
+
+### D-17 — Resultado das Etapas 3 e 4
+
+- **Linha de base reproduzida:** os testes do commit `325d7ac` foram extraídos
+  com `git archive` para a pasta temporária da sessão, fora do repositório, e
+  rodados no mesmo container Java 8. Os números bateram com D-07: 97% de ramos
+  e 79% de mutação. A branch de trabalho não foi alterada.
+- **Depois:** PIT rodado de novo com `-DfullMutationMatrix=true` (opção de
+  linha de comando, sem mudar o `pom.xml`) para obter os testes que matam cada
+  mutante. Resultado: 91% (60/66).
+- **Evidências:** 8 prints gerados com o Chrome sem janela a partir dos
+  relatórios HTML, recortados com PIL (Python), em
+  `docs/evidencias/entrega2/baseline/` e `depois-testes/`:
+  - `jacoco-VendaService-metodos`;
+  - `jacoco-VendaService-codigo`, que mostra `fechaVenda` com o losango
+    amarelo da linha 218 no "antes";
+  - `pit-VendaService` (resumo);
+  - `pit-VendaService-mutantes` (lista de mutantes).
+
+  **Ajuste da IA:** a rolagem por âncora não funcionou no Chrome sem janela.
+  Por isso as páginas foram capturadas inteiras e recortadas no trecho
+  relevante.
+- **Documento:** [`docs/teste-estrutural-mutacao-venda.md`](../teste-estrutural-mutacao-venda.md),
+  com:
+  - **Teste estrutural:** justificativa de por que ramos + linhas do JaCoCo
+    equivalem a todas-arestas; grafo de fluxo de controle de `fechaVenda` (25
+    nós, 30 arestas, diagrama Mermaid) e de `avistaDinheiro` e `aprazo`; cada
+    aresta ligada ao teste que a percorre. A única aresta sem teste no "antes"
+    era a **e24** (título à vista de outro tipo), coberta pelo T-3.
+  - **Teste de mutação:** escore bruto 79% → **91%**; escore efetivo, sem os
+    equivalentes, 87% → **100%**. A matriz traz os 66 mutantes com antes e
+    depois. Os 8 mutantes mortos na Entrega 2 estão explicados um a um, e a
+    equivalência dos 6 vivos está justificada.
+- **Correção feita pela IA durante a revisão:** a primeira versão do texto
+  dizia que o JaCoCo conta os `catch` na complexidade, o que está errado. O
+  texto foi corrigido: pelo grafo a complexidade é 13 (12 decisões, incluindo
+  as 2 saídas por exceção), e o JaCoCo informa 11 porque conta só as 10
+  condições do bytecode.
+- **Observação para a Etapa 7:** os 6 equivalentes vêm de código morto (os
+  `println` dos `catch`, o parâmetro `qtdVezes` sem uso e o mapa `modeloPagar`
+  nunca lido). São candidatos naturais à limpeza na inspeção com o Sonar.
+- **Pendente para o responsável:** passar o documento para o Google Docs. O
+  diagrama Mermaid aparece desenhado no GitHub; no Docs pode entrar como print.
+
+### D-18 — Commit das Etapas 3 e 4
+
+- **Proposta:** commitar o documento de teste estrutural e de mutação, os 8
+  prints de evidência e este registro na branch `test/venda-service-entrega2`,
+  em nome do responsável e sem coautoria da IA.
+- **Alternativa apresentada:** revisar as alterações antes.
+- **Decisão:** commitar.
 - **Efeito:** commit local, ainda não enviado ao remoto.
