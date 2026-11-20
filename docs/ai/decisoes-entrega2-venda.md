@@ -269,4 +269,79 @@ de `VendaService` não precisa alterar o build.
   `test/venda-service-entrega2`, em nome do responsável e sem coautoria da IA.
 - **Alternativa apresentada:** revisar as alterações antes.
 - **Decisão:** commitar.
+- **Efeito:** commit local `467a5b0`, ainda não enviado ao remoto.
+
+## 2026-11-20 — Etapa 2: Teste funcional
+
+### D-13 — Técnicas, escopo, documentação e defeitos
+
+- **Proposta:** derivar os casos a partir dos requisitos RF-01 a RF-04, sem
+  olhar o código, usando:
+  - classes de equivalência;
+  - valores-limite;
+  - tabela de decisão por parcela, com as regras R1 a R7.
+
+  O resultado são 12 testes novos (TF-VEN-01 a TF-VEN-12). Os testes que já
+  existiam passam a ter a referência da regra que cobrem.
+- **Decisões, uma por item:**
+  1. **Técnicas:** classes de equivalência, valores-limite e tabela de
+     decisão. Alternativa recusada: incluir o grafo de causa e efeito, que
+     repetiria a tabela de decisão.
+  2. **Escopo:** foco em `fechaVenda`, mais os limites de RF-02
+     (`addProduto`) e RF-03 (`busca`). Alternativa recusada: só `fechaVenda`.
+  3. **Documentação:** a IA escreve o projeto de teste em
+     [`docs/teste-funcional-venda.md`](../teste-funcional-venda.md) e o
+     responsável passa o texto para o Google Docs com a própria conta, para a
+     autoria ficar registrada lá. Alternativa recusada: o responsável escrever
+     direto no Docs.
+  4. **Defeitos:** mesmo critério de D-10. Os testes registram o comportamento
+     atual marcado como DEFEITO, sem corrigir a produção.
+- **Decisão:** aprovado como proposto.
+
+### D-14 — Resultado da Etapa 2
+
+- **Artefatos:**
+  - [`docs/teste-funcional-venda.md`](../teste-funcional-venda.md): requisitos,
+    13 grupos de classes de equivalência, valores-limite, tabela de decisão
+    R1 a R7 e rastreabilidade de cada classe, limite e regra até o teste que a
+    cobre.
+  - `VendaServiceTest.java`: 12 testes novos (TF-VEN-01 a 12) e um comentário
+    `// Teste funcional:` em 8 testes que já existiam, indicando a regra ou o
+    limite que cobrem.
+- **Ajuste de implementação, decidido pela IA:** no TF-VEN-06 (desconto de
+  100,01 sobre 100,00), o total calculado não é exatamente −0,01 em `double`.
+  O teste compara com tolerância de 0,000001 (`doubleThat`), e a observação
+  ficou registrada no projeto de teste.
+- **Defeitos novos encontrados pelo teste funcional (6):**
+  - desconto igual ao total fecha a venda por 0,00 (TF-VEN-05);
+  - desconto maior que o total fecha a venda com valor negativo (TF-VEN-06);
+  - acréscimo negativo é aceito (TF-VEN-07);
+  - faltar título para uma forma de pagamento gera
+    `ArrayIndexOutOfBoundsException` depois de a 1ª parcela já ter sido gerada
+    e a venda marcada como fechada (TF-VEN-09);
+  - incluir produto em venda inexistente gera `NullPointerException`
+    (TF-VEN-10);
+  - situação nula na busca gera `NullPointerException` (TF-VEN-12).
+
+  Há ainda 2 comportamentos que o requisito não define e que ficaram apenas
+  registrados: o prazo `0` é tratado como venda a prazo (TF-VEN-08), e a busca
+  por situação diferencia maiúsculas de minúsculas (TF-VEN-11).
+- **Execução** (container Java 8): `VendaServiceTest` com 53 testes, 0 falhas
+  e 0 erros. Suíte completa: 114 testes, com o mesmo único erro preexistente
+  de `PdvApplicationTests`.
+- **Medições:** JaCoCo continua em 100% de instruções, ramos e linhas. O PIT
+  continua em 91% (60 de 66), com os mesmos 6 mutantes equivalentes de D-11.
+  Como esperado, os testes funcionais não mataram mutantes novos, porque os
+  testes estruturais da Etapa 1 já cobriam o código. O ganho deles está nos
+  defeitos encontrados a partir dos requisitos.
+- **Pendente para o responsável:** passar o conteúdo de
+  `docs/teste-funcional-venda.md` para o Google Docs com a própria conta.
+
+### D-15 — Commit da Etapa 2
+
+- **Proposta:** commitar o projeto de teste funcional, `VendaServiceTest.java`
+  e este registro na branch `test/venda-service-entrega2`, em nome do
+  responsável e sem coautoria da IA.
+- **Alternativa apresentada:** revisar as alterações antes.
+- **Decisão:** commitar.
 - **Efeito:** commit local, ainda não enviado ao remoto.
