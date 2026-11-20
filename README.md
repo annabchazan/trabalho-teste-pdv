@@ -54,8 +54,20 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 
 **Felipe Martins Bittencourt — `VendaService`**
 
-- Testes unitários (32 cenários): [`VendaServiceTest.java`](src/test/java/net/originmobi/pdv/service/VendaServiceTest.java)
+- Testes unitários e funcionais (53 testes, dependências isoladas com Mockito; TF-VEN-01..12): [`VendaServiceTest.java`](src/test/java/net/originmobi/pdv/service/VendaServiceTest.java)
+- Testes de integração TI-VEN-01..08: [`VendaServiceIT.java`](src/test/java/net/originmobi/pdv/service/VendaServiceIT.java)
+- Testes de sistema (Selenium) TS-VEN-01..07, com o requisito não funcional de desempenho: [`VendaSistemaIT.java`](src/test/java/net/originmobi/pdv/service/VendaSistemaIT.java)
 - Casos de teste manual CT-VENDA-01..11: [`docs/testes-manuais/CT-VENDA-01.md`](docs/testes-manuais/CT-VENDA-01.md)
+- Entrega 2, documentos (rascunhos das seções do Google Docs: [preencher link]):
+  - Teste funcional: [`docs/teste-funcional-venda.md`](docs/teste-funcional-venda.md)
+  - Teste estrutural (todas-arestas) e de mutação: [`docs/teste-estrutural-mutacao-venda.md`](docs/teste-estrutural-mutacao-venda.md)
+  - Testes de integração: [`docs/teste-integracao-venda.md`](docs/teste-integracao-venda.md)
+  - Testes de sistema e requisito não funcional: [`docs/teste-sistema-venda.md`](docs/teste-sistema-venda.md)
+  - Inspeção com o SonarQube e correções: [`docs/inspecao-sonar-venda.md`](docs/inspecao-sonar-venda.md)
+  - Medidas ISO/IEC 25010: [`docs/medidas-iso25010-venda.md`](docs/medidas-iso25010-venda.md)
+- Resultados: 100% de arestas e de mutação (60/60); Sonar de 11 problemas para 0; 19 defeitos registrados, nenhum corrigido por decisão
+- Evidências de JaCoCo, PIT, SonarQube, integração e Selenium: [`docs/evidencias/entrega2/`](docs/evidencias/entrega2/)
+- Registro das decisões e do uso de IA na Entrega 2: [`docs/ai/decisoes-entrega2-venda.md`](docs/ai/decisoes-entrega2-venda.md)
 
 **Anna Beatriz Chaboudet Chazan — `NotaFiscalItemService`**
 

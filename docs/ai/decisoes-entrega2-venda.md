@@ -656,3 +656,57 @@ de `VendaService` não precisa alterar o build.
 - **Alternativa apresentada:** revisar as alterações antes.
 - **Decisão:** commitar.
 - **Efeito:** commit local, ainda não enviado ao remoto.
+
+## 2026-11-20 — Etapa 8: Medidas ISO/IEC 25010 e fechamento
+
+### D-32 — Escopo da Etapa 8
+
+- **Proposta da IA:**
+  1. `docs/medidas-iso25010-venda.md`, com medidas das características
+     adequação funcional (correção), confiabilidade (maturidade e tolerância
+     a falhas), eficiência de desempenho (comportamento temporal),
+     manutenibilidade (testabilidade, analisabilidade e modificabilidade,
+     modularidade), usabilidade (proteção contra erro do usuário, avaliação
+     qualitativa) e segurança (só os achados do Sonar). Cada medida com
+     fórmula, valor, meta, evidência e avaliação, usando só o que foi medido
+     nas Etapas 1 a 7. Fecha com a situação final dos defeitos D-VEN-01 a 10
+     e as limitações.
+  2. Atualizar a seção do responsável no README com os artefatos da Entrega
+     2; links do Google Docs marcados como "[preencher]".
+  3. Entrada no `docs/ai/AI-LOG.md` resumindo o uso de IA na Entrega 2.
+  4. Decisões a partir da D-32 e commit em nome do responsável depois da
+     aprovação.
+  Fora do escopo: Issues no GitHub para os defeitos e push da branch.
+- **Alternativa apresentada:** fazer sem a entrada no AI-LOG.
+- **Decisão:** aprovado como proposto.
+
+### D-33 — Resultado da Etapa 8
+
+- **Documento:** [`docs/medidas-iso25010-venda.md`](../medidas-iso25010-venda.md),
+  com 13 medidas (M1 a M13), cada uma com fórmula, valor, meta, evidência e
+  avaliação, mais a situação final dos defeitos e as limitações.
+- **Ajuste da IA em relação à proposta:** a proposta citava 10 defeitos
+  (D-VEN-01 a 10). Ao juntar as evidências, a IA contou também os achados na
+  Entrega 2: 3 dos testes unitários da Etapa 1 (T-3, T-9a, T-9b) e 6 do teste
+  funcional. O total ficou em 19, e a densidade de defeitos foi calculada com
+  os 19 (84,8 por mil linhas), mostrando também o valor só com os 10 da
+  Entrega 1 (44,6). Os defeitos novos ficaram sem severidade, porque ela
+  não foi classificada nas etapas anteriores.
+- **Desempenho:** a medida M6 junta as 4 execuções da Etapa 6 com a da Etapa
+  7: 24 de 25 fechamentos em até 2 s.
+- **README:** seção do responsável atualizada (53 testes, testes de
+  integração e de sistema, os 6 documentos, evidências e decisões); o link do
+  Google Docs ficou como "[preencher link]".
+- **AI-LOG:** entrada nova resumindo as Etapas 1 a 8.
+- **Pendente para o responsável:** passar os documentos para o Google Docs,
+  preencher o link no README e confirmar o e-mail dos commits antes do push.
+
+### D-34 — Commit da Etapa 8
+
+- **Proposta:** commitar o documento de medidas ISO/IEC 25010, o README, a
+  entrada no AI-LOG e este registro na branch `test/venda-service-entrega2`,
+  em nome do responsável e sem coautoria da IA.
+- **Alternativa apresentada:** revisar as alterações antes.
+- **Decisão:** commitar.
+- **Efeito:** commit local, ainda não enviado ao remoto. Com ele, as 9
+  etapas da Entrega 2 de `VendaService` estão concluídas.
