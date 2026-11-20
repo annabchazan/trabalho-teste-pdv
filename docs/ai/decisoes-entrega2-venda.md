@@ -490,3 +490,74 @@ de `VendaService` não precisa alterar o build.
 - **Alternativa apresentada:** revisar as alterações antes.
 - **Decisão:** commitar.
 - **Efeito:** commit local, ainda não enviado ao remoto.
+
+## 2026-11-20 — Etapa 6: Testes de sistema (Selenium) e requisito não funcional
+
+### D-23 — Escopo dos testes de sistema
+
+- **Proposta:**
+  1. Classe `VendaSistemaIT.java` no padrão de `NotaFiscalItemSistemaIT`:
+     Chrome sem janela por padrão, login como `gerente`, massa de dados
+     criada direto no MySQL (porta 3307) com códigos a partir de 9201 e
+     apagada antes e depois de cada caso. O Caixa01 é tratado como na D-20.
+  2. Casos funcionais, que automatizam os testes manuais da Entrega 1:
+     TS-VEN-01 (CT-VENDA-01) abrir venda, incluir e remover produto;
+     TS-VEN-02 (CT-VENDA-02) fechar à vista em dinheiro; TS-VEN-03
+     (CT-VENDA-03) fechar a prazo; TS-VEN-04 (CT-VENDA-06) fechar sem caixa
+     aberto; TS-VEN-05 (CT-VENDA-07) fechar a prazo sem cliente; TS-VEN-06
+     (CT-VENDA-08) desconto e acréscimo, que espera o comportamento correto e
+     fica com `@Ignore` por causa do defeito D-VEN-01.
+  3. Requisito não funcional TS-VEN-07, de desempenho (ISO 25010: eficiência
+     de desempenho, tempo de resposta): fechar uma venda pela tela leva no
+     máximo 2 s, do clique em confirmar até a mensagem. Medição de 5
+     fechamentos depois de um de aquecimento; critério: o maior tempo. A
+     segurança não foi escolhida porque já foi testada pela Anna.
+  4. Ambiente: aplicação com `docker compose up -d pdv-app`; testes rodando
+     no Windows, com Maven e Java 17, por causa do Chrome.
+  5. Entregáveis: `VendaSistemaIT.java`, `docs/teste-sistema-venda.md`,
+     prints e registro das decisões.
+- **Decisão:** aprovado como proposto.
+
+### D-24 — Falha intermitente no requisito de desempenho
+
+- **Contexto:** na primeira execução da suíte, o TS-VEN-07 falhou: tempos de
+  879, 709, 5339, 733 e 738 ms, contra o limite de 2000 ms para o maior. No
+  log de SQL da aplicação, a IA achou uma pausa de 3,8 s no servidor logo
+  depois do `drop temporary table HT_venda`, que o Hibernate executa no
+  update em massa da venda. Duas novas execuções só do TS-VEN-07 passaram
+  (maior tempo de 666 e 607 ms).
+- **Opções apresentadas:** (1) manter o critério e registrar a falha
+  intermitente com a causa achada; (2) mudar o critério (por exemplo,
+  mediana de até 2 s); (3) ampliar a amostra para 20 medições.
+- **Decisão:** opção 1, manter e registrar.
+
+### D-25 — Resultado da Etapa 6
+
+- **Execução final** (suíte completa, no Windows, com Java 17): 7 testes, 6
+  passaram, 1 pulado (TS-VEN-06), 0 falhas. Tempos do TS-VEN-07: 573, 570,
+  584, 556 e 555 ms.
+- **TS-VEN-06:** rodado uma vez sem o `@Ignore` para confirmar o defeito.
+  Falhou com `expected:<8.0> but was:<12.0>` (lançamento de caixa), o que
+  confirma o D-VEN-01 pela tela. A anotação foi recolocada logo depois.
+- **Prints:** a pedido do escopo, o TS-VEN-02 grava 2 prints de tela (modal
+  de pagamento e venda fechada). Ao todo são 3 arquivos em
+  `docs/evidencias/entrega2/sistema/`, contando o relatório. **Ajuste da
+  IA:** o primeiro relatório incluiu o resultado antigo da `VendaServiceIT`
+  que estava em `target`. O relatório foi gerado de novo só com a
+  `VendaSistemaIT`.
+- **Ambiente:** o plugin de relatório do Maven foi baixado da Maven Central
+  para o repositório local do Windows. O Caixa01 voltou como estava e não
+  sobraram registros dos testes.
+- **Observação de interface:** na venda fechada, o "x" de remover produto
+  continua aparecendo. Fica para a avaliação de usabilidade.
+- **Documento:** [`docs/teste-sistema-venda.md`](../teste-sistema-venda.md).
+- **Pendente para o responsável:** passar o documento para o Google Docs.
+
+### D-26 — Commit da Etapa 6
+
+- **Proposta:** commitar `VendaSistemaIT.java`, o documento de testes de
+  sistema, os 3 prints e este registro na branch `test/venda-service-entrega2`,
+  em nome do responsável e sem coautoria da IA.
+- **Alternativa apresentada:** revisar as alterações antes.
+- **Decisão:** commitar.
+- **Efeito:** commit local, ainda não enviado ao remoto.
