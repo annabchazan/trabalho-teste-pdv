@@ -420,3 +420,73 @@ de `VendaService` não precisa alterar o build.
 - **Alternativa apresentada:** revisar as alterações antes.
 - **Decisão:** commitar.
 - **Efeito:** commit local, ainda não enviado ao remoto.
+
+## 2026-11-20 — Etapa 5: Testes de integração
+
+### D-19 — Escopo dos testes de integração
+
+- **Contexto:** nos testes unitários todas as dependências de `VendaService`
+  são simuladas. Ficam sem verificação as consultas reais do
+  `VendaRepository`, a transação do `fechaVenda` (`@Transactional`) e a
+  colaboração com os serviços reais de caixa, títulos, recebimento, parcelas e
+  estoque.
+- **Proposta:**
+  1. Classe `VendaServiceIT.java` no padrão já usado pelo grupo
+     (`NotaFiscalItemServiceIT`): `@SpringBootTest` sem servidor web, MySQL do
+     `docker-compose` (`pdv-db`) com o esquema do Flyway, massa de dados com
+     códigos a partir de 9001 apagada antes e depois de cada caso, execução
+     por `mvn verify`. Usuário logado simulado como `gerente`.
+  2. Casos TI-VEN-01 a 08: abrir venda; incluir produto em venda aberta e
+     fechada; busca e `qtdAbertos`; fechar à vista em dinheiro; fechar a
+     prazo; fechar sem caixa aberto (verificar se a transação é desfeita);
+     fechar com estoque insuficiente (verificar se a venda volta a ficar
+     aberta); fechar venda já fechada.
+  3. Comportamento divergente do requisito é registrado como DEFEITO, sem
+     alterar o código de produção.
+  4. Ações de ambiente: subir só o container `pdv-db` e rodar o Maven num
+     container na mesma rede, executando apenas a `VendaServiceIT`.
+  5. Entregáveis: `VendaServiceIT.java`, `docs/teste-integracao-venda.md`,
+     print do relatório de execução e registro das decisões.
+- **Decisão:** aprovado como proposto.
+
+### D-20 — Caixa aberto existente no banco local
+
+- **Contexto:** o banco local (`pdv-db`) tem o "Caixa01" (código 1), aberto
+  desde os testes manuais da Entrega 1. O sistema só aceita um caixa do tipo
+  `CAIXA` aberto por vez. O TI-VEN-06 precisa que não haja caixa aberto, e um
+  lançamento no caixa altera os totais dele por trigger.
+- **Opções apresentadas:** (1) guardar os dados do Caixa01, marcá-lo como
+  fechado durante cada caso e restaurá-lo depois, usando um caixa próprio
+  (9001) nos testes; (2) lançar no próprio Caixa01 e desfazer os totais na
+  limpeza; (3) criar um banco separado só para as ITs.
+- **Decisão:** opção 1, fechar e restaurar. O Caixa01 nunca recebe
+  lançamentos dos testes.
+
+### D-21 — Resultado da Etapa 5
+
+- **Execução:** `VendaServiceIT` com 9 métodos (TI-VEN-01 a 08, sendo o 02
+  dividido em venda aberta e fechada). Rodou num container Java 8 ligado à
+  rede do `pdv-db`: 9 passaram, 0 falhas. Relatório gerado com o
+  `maven-surefire-report-plugin` 3.2.5, pela linha de comando e sem mudar o
+  `pom.xml`. O print está em
+  `docs/evidencias/entrega2/integracao/failsafe-VendaServiceIT.png`.
+- **Transação de `fechaVenda`:** os casos TI-VEN-06 (sem caixa aberto) e
+  TI-VEN-07 (estoque insuficiente) mostram que ela é desfeita. Para provar que
+  as gravações aconteceram antes do erro, a IA rodou os dois casos de novo e
+  conferiu o log de SQL: `insert into receber` nos dois casos, e
+  `update venda` e `insert into caixa_lancamento` no 07. Nenhum desses
+  registros ficou no banco.
+- **Defeitos novos:** nenhum.
+- **Banco local:** depois da execução, o Caixa01 voltou como estava (aberto,
+  com a mesma `data_alteracao`) e não sobraram registros dos testes.
+- **Documento:** [`docs/teste-integracao-venda.md`](../teste-integracao-venda.md).
+- **Pendente para o responsável:** passar o documento para o Google Docs.
+
+### D-22 — Commit da Etapa 5
+
+- **Proposta:** commitar `VendaServiceIT.java`, o documento de testes de
+  integração, o print do relatório e este registro na branch
+  `test/venda-service-entrega2`, em nome do responsável e sem coautoria da IA.
+- **Alternativa apresentada:** revisar as alterações antes.
+- **Decisão:** commitar.
+- **Efeito:** commit local, ainda não enviado ao remoto.
