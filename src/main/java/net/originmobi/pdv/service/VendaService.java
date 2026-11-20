@@ -2,9 +2,7 @@ package net.originmobi.pdv.service;
 
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,38 +35,52 @@ import net.originmobi.pdv.utilitarios.DataAtual;
 @Service
 public class VendaService {
 
-	@Autowired
-	private VendaRepository vendas;
+	private final VendaRepository vendas;
+
+	private final UsuarioService usuarios;
+
+	private final VendaProdutoService vendaProdutos;
+
+	private final PagamentoTipoService formaPagamentos;
+
+	private final CaixaService caixas;
+
+	private final ReceberService receberServ;
+
+	private final ParcelaService parcelas;
+
+	private final CaixaLancamentoService lancamentos;
+
+	private final TituloService tituloService;
+
+	private final CartaoLancamentoService cartaoLancamento;
+
+	private final ProdutoService produtos;
 
 	@Autowired
-	private UsuarioService usuarios;
-
-	@Autowired
-	private VendaProdutoService vendaProdutos;
-
-	@Autowired
-	private PagamentoTipoService formaPagamentos;
-
-	@Autowired
-	private CaixaService caixas;
-
-	@Autowired
-	private ReceberService receberServ;
-
-	@Autowired
-	private ParcelaService parcelas;
-
-	@Autowired
-	private CaixaLancamentoService lancamentos;
-
-	@Autowired
-	private TituloService tituloService;
-
-	@Autowired
-	private CartaoLancamentoService cartaoLancamento;
-
-	@Autowired
-	private ProdutoService produtos;
+	public VendaService(VendaRepository vendas,
+			UsuarioService usuarios,
+			VendaProdutoService vendaProdutos,
+			PagamentoTipoService formaPagamentos,
+			CaixaService caixas,
+			ReceberService receberServ,
+			ParcelaService parcelas,
+			CaixaLancamentoService lancamentos,
+			TituloService tituloService,
+			CartaoLancamentoService cartaoLancamento,
+			ProdutoService produtos) {
+		this.vendas = vendas;
+		this.usuarios = usuarios;
+		this.vendaProdutos = vendaProdutos;
+		this.formaPagamentos = formaPagamentos;
+		this.caixas = caixas;
+		this.receberServ = receberServ;
+		this.parcelas = parcelas;
+		this.lancamentos = lancamentos;
+		this.tituloService = tituloService;
+		this.cartaoLancamento = cartaoLancamento;
+		this.produtos = produtos;
+	}
 
 	private Timestamp dataHoraAtual = new Timestamp(System.currentTimeMillis());
 
@@ -168,17 +180,7 @@ public class VendaService {
 		// vlTotal é usado no lancamento
 		Double vlTotal = (vlprodutos + acrescimo) - desconto;
 
-		int qtdVezes = formaPagar.length;
-
 		int sequencia = 1;
-
-		// crio este MAP para receber todas as formas de pagamento e poder
-		// pesquisar por uma chave que é o tipo da forma, assim posso verificar
-		// se o tipo 00 esta presente.
-		Map<String, String> modeloPagar = new HashMap<>();
-		for (int i = 0; i < formaPagar.length; i++) {
-			modeloPagar.put(formaPagar[i], formaPagar[i]);
-		}
 
 		Venda dadosVenda = vendas.findByCodigoEquals(venda);
 		dadosVenda.setPagamentotipo(formaPagamento);
@@ -190,7 +192,6 @@ public class VendaService {
 		try {
 			receberServ.cadastrar(receber);
 		} catch (Exception e) {
-			System.out.println(e);
 			throw new RuntimeException("Erro ao fechar a venda, chame o suporte");
 		}
 
@@ -210,7 +211,7 @@ public class VendaService {
 					if (!caixas.caixaIsAberto())
 						throw new RuntimeException("nenhum caixa aberto");
 
-					qtdVezes = avistaDinheiro(vlprodutos, vlParcelas, formaPagar, qtdVezes, i, desc, acre);
+					avistaDinheiro(vlprodutos, vlParcelas, i, desc, acre);
 				}
 
 				// se for no cartão de debito ou crédito
@@ -229,8 +230,7 @@ public class VendaService {
 					throw new RuntimeException("Venda sem cliente, verifique");
 
 				// no dinheiro
-				sequencia = aprazo(vlprodutos, vlParcelas, dataAtual, formaPagar, qtdVezes, sequencia, receber, i, desc,
-						acre);
+				sequencia = aprazo(vlParcelas, dataAtual, formaPagar, sequencia, receber, i, desc, acre);
 			}
 
 			try {
@@ -239,7 +239,6 @@ public class VendaService {
 				vendas.fechaVenda(venda, VendaSituacao.FECHADA, vlFinal, desconto, acrescimo,
 						dataAtual.dataAtualTimeStamp(), formaPagamento);
 			} catch (Exception e) {
-				System.out.println(e);
 				throw new RuntimeException("Erro ao fechar a venda, chame o suporte");
 			}
 
@@ -255,8 +254,8 @@ public class VendaService {
 	 * Responsável por realizar o lançamento quando a parcela da venda é a prazo
 	 * 
 	 */
-	private int aprazo(Double vlprodutos, String[] vlParcelas, DataAtual dataAtual, String[] formaPagar, int qtdVezes,
-			int sequencia, Receber receber, int i, Double acre, Double desc) {
+	private int aprazo(String[] vlParcelas, DataAtual dataAtual, String[] formaPagar, int sequencia, Receber receber,
+			int i, Double acre, Double desc) {
 
 		if (vlParcelas[i].isEmpty()) {
 			throw new RuntimeException("valor de recebimento invalido");
@@ -282,12 +281,7 @@ public class VendaService {
 	 * no dinheiro
 	 * 
 	 */
-	private int avistaDinheiro(Double vlprodutos, String[] vlParcelas, String[] formaPagar, int qtdVezes, int i,
-			Double acre, Double desc) {
-
-		// decremento ela para usa-la no a prazo, sem a sequencia do a
-		// vista
-		qtdVezes = qtdVezes - 1;
+	private void avistaDinheiro(Double vlprodutos, String[] vlParcelas, int i, Double acre, Double desc) {
 
 		if (vlParcelas[i].isEmpty())
 			throw new RuntimeException("Parcela sem valor, verifique");
@@ -313,10 +307,8 @@ public class VendaService {
 		try {
 			lancamentos.lancamento(lancamento);
 		} catch (Exception e) {
-			System.out.println(e);
 			throw new RuntimeException("Erro ao fechar a venda, chame o suporte");
 		}
-		return qtdVezes;
 	}
 
 	private Boolean vendaIsAberta(Long codVenda) {

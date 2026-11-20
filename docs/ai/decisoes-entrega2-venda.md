@@ -561,3 +561,98 @@ de `VendaService` não precisa alterar o build.
 - **Alternativa apresentada:** revisar as alterações antes.
 - **Decisão:** commitar.
 - **Efeito:** commit local, ainda não enviado ao remoto.
+
+## 2026-11-20 — Etapa 7: Inspeção com o SonarQube e correções
+
+### D-27 — Escopo da Etapa 7
+
+- **Contexto:** a análise de referência (D-08) apontou 11 problemas em
+  `VendaService`, todos da regra `java:S6813` (injeção de dependência no
+  campo com `@Autowired`), e nenhum bug ou vulnerabilidade.
+- **Proposta da IA:**
+  1. Trocar as 11 injeções no campo por injeção pelo construtor, com campos
+     `private final`, no mesmo formato do commit `5aa1420` da Anna.
+  2. Remover o código morto apontado nas Etapas 3 e 4, sem mudar o
+     comportamento: o mapa `modeloPagar`, que nunca é lido; o `qtdVezes`,
+     que é calculado e passado sem ser usado; e os 3 `System.out.println`
+     dos `catch`, mantendo as mensagens de erro.
+  3. Não corrigir os defeitos funcionais (D-VEN-01 e os demais), que estão
+     caracterizados pelos testes.
+  4. Validar com `VendaServiceTest`, JaCoCo, PIT, `VendaServiceIT` e
+     `VendaSistemaIT`, e fazer uma nova análise do Sonar.
+  5. O responsável tira os prints do Sonar "antes", gera um token novo e
+     depois tira os prints do "depois".
+  6. Entregáveis: `VendaService.java` corrigido,
+     `docs/inspecao-sonar-venda.md`, números novos de cobertura e mutação e
+     este registro.
+- **Alternativa apresentada:** fazer só o item 1, o único apontado pelo
+  Sonar.
+- **Decisão:** aprovado como proposto.
+
+### D-28 — Correções aplicadas e validação (antes da nova análise)
+
+- **Correções em `VendaService`:** as 11 dependências viraram campos
+  `private final`, preenchidos por um construtor com `@Autowired`. Foram
+  removidos o mapa `modeloPagar` (e os imports `HashMap` e `Map`), o
+  `qtdVezes` (variável, parâmetros e retorno de `avistaDinheiro`, que passou
+  a ser `void`), o parâmetro `vlprodutos` de `aprazo`, que também nunca era
+  usado, e os 3 `System.out.println`. A troca de desconto e acréscimo
+  (D-VEN-01) foi mantida de propósito.
+- **Testes unitários:** 53 de 53 passaram sem nenhuma mudança nos testes; o
+  `@InjectMocks` passou a usar o construtor.
+- **JaCoCo:** 100% de linhas (130/130) e de ramos (36/36). As linhas subiram
+  de 126 para 130 por causa do construtor; os ramos caíram de 38 para 36
+  porque o laço do `modeloPagar` saiu.
+- **PIT:** 60 mutantes, 60 mortos (100% bruto, antes 91% com 66). Os 6
+  mutantes a menos eram os equivalentes da Etapa 4. **Ajuste da IA:** na
+  primeira execução, todos os 60 deram `TIMED_OUT`, inclusive os triviais,
+  porque a máquina estava com o SonarQube e a aplicação no ar. Com
+  `-DtimeoutConstant=30000` todos foram mortos. O limite maior não muda o
+  critério: um mutante só é "morto" quando um teste falha.
+- **Integração:** `VendaServiceIT` 9 de 9; o contexto do Spring sobe com o
+  construtor, sem dependência circular.
+- **Sistema:** aplicação reconstruída; `VendaSistemaIT` com 7 testes, 6
+  passaram e 1 pulado (TS-VEN-06). TS-VEN-07: 557, 571, 551, 576 e 562 ms.
+  O Caixa01 voltou como estava e não sobraram registros.
+- **Prints:** `docs/evidencias/entrega2/depois-sonar/` com JaCoCo e PIT.
+- **Pendente:** prints do Sonar "antes", token e nova análise.
+
+### D-29 — Prints do "antes" e token da análise
+
+- **Contexto:** o responsável pediu que a IA tirasse os prints do Sonar
+  "antes", pois não os tinha tirado. O navegador do app já estava logado no
+  Sonar.
+- **O que foi feito:** a IA capturou a lista de problemas e o cabeçalho do
+  arquivo. Como a tela de complexidade não coube na captura, também leu os
+  números exatos pela API do Sonar, usando a sessão do navegador, e os
+  guardou em `sonar-VendaService-baseline.json`. Os números batem com a D-08.
+- **Token:** a IA perguntou se podia gerar um token temporário e revogá-lo
+  depois, ou se o responsável preferia gerar. **Decisão:** "Sim, gere e
+  revogue". Foi gerado um token do tipo análise de projeto, restrito a
+  `trabalho-teste-pdv`, usado só na análise e revogado logo depois. O
+  arquivo temporário com o token foi apagado. O token que o responsável já
+  tinha não foi tocado.
+
+### D-30 — Resultado da Etapa 7
+
+- **Suíte unitária completa** (rodada antes da análise, para a cobertura do
+  projeto inteiro entrar no Sonar): 114 testes, 0 falhas, 7 pulados. Na
+  primeira tentativa, o `PdvApplicationTests` falhou porque o container
+  estava sem a rede do banco; com a rede, passou.
+- **Sonar, `VendaService.java`:** de 11 problemas para 0 (os 11 com status
+  "Fixed"); dívida de 55 min para 0; notas A/A/A mantidas; complexidade
+  ciclomática 29 e cognitiva de 44 para 43; cobertura de 98,2% para 100%.
+- **Documento:** [`docs/inspecao-sonar-venda.md`](../inspecao-sonar-venda.md).
+- **Pendente para o responsável:** passar o documento para o Google Docs e,
+  se quiser, trocar os prints do Sonar por capturas próprias, com os mesmos
+  nomes.
+
+### D-31 — Commit da Etapa 7
+
+- **Proposta:** commitar `VendaService.java` corrigido, o documento de
+  inspeção, os prints e os JSON do Sonar, os prints de JaCoCo e PIT e este
+  registro na branch `test/venda-service-entrega2`, em nome do responsável e
+  sem coautoria da IA.
+- **Alternativa apresentada:** revisar as alterações antes.
+- **Decisão:** commitar.
+- **Efeito:** commit local, ainda não enviado ao remoto.
