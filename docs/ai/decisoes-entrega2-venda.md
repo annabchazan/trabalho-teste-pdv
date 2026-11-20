@@ -192,3 +192,81 @@ de `VendaService` não precisa alterar o build.
 - **Decisão:** commitar agora. Os prints da linha de base irão em um commit
   separado.
 - **Efeito:** commit local, ainda não enviado ao remoto.
+
+## 2026-11-20 — Etapa 1: Testes unitários com dependências isoladas
+
+### D-10 — Escopo da Etapa 1
+
+- **Diagnóstico da IA:** o `VendaServiceTest` já simula com Mockito as 11
+  dependências da classe e não acessa o banco. Há duas falhas de isolamento:
+  - **I-1:** o singleton `Aplicacao` guarda numa variável estática o usuário
+    lido do `SecurityContextHolder` e só o lê uma vez. O resultado depende da
+    ordem dos testes e de outras classes de teste da mesma execução.
+  - **I-2:** `fechaVenda` cria `new DataAtual()`, que usa o relógio real, e os
+    testes aceitavam qualquer data de vencimento (`any(Date.class)`).
+- **Proposta:**
+  1. **Isolamento só no código de teste:** zerar `Aplicacao.aplicacao` com
+     `ReflectionTestUtils` antes e depois de cada teste (I-1). Conferir os
+     vencimentos em relação à data de hoje (I-2). Sem alterar o `pom.xml` nem a
+     produção.
+  2. **Defeitos:** manter os testes "DEFEITO" documentando o comportamento
+     atual, sem corrigir os bugs nesta etapa.
+  3. **9 testes novos (T-1 a T-9)**, voltados ao ramo sem cobertura, às linhas
+     sem cobertura e aos mutantes sobreviventes que podem ser mortos.
+- **Alternativas apresentadas:** mudar a produção agora (injeção por construtor
+  e relógio como dependência, o que adiantaria a Etapa 7); corrigir os
+  defeitos já nesta etapa; mudar a lista de testes.
+- **Decisão:** aprovado como proposto.
+
+### D-11 — Resultado da Etapa 1
+
+- **Alterações em `VendaServiceTest`:** só código de teste. A produção e o
+  `pom.xml` não mudaram.
+  - I-1: `ReflectionTestUtils.setField(Aplicacao.class, "aplicacao", null)` no
+    `@Before` e no `@After`.
+  - I-2 / T-8: o teste a prazo "30/60" confere os vencimentos `hoje + 30` e
+    `hoje + 60` (helper `hojeMais`), em vez de `any(Date.class)`.
+  - 9 métodos de teste novos:
+
+    | ID | Método | Tipo |
+    |---|---|---|
+    | T-1 | `abreVenda_deveEngolirExcecao_quandoRepositorioFalhaAoAtualizarVendaExistente` | DEFEITO |
+    | T-2 | `fechaVenda_deveLancarNoCartao_quandoAVistaComCartaoDeDebito` | sucesso |
+    | T-3 | `fechaVenda_deveFecharSemRegistrarRecebimento_quandoTituloAVistaNaoEDinheiroNemCartao` | DEFEITO |
+    | T-4 | `fechaVenda_deveRegistrarOReceberComDescontoEAcrescimo` | sucesso |
+    | T-5 | `fechaVenda_deveGravarAFormaDePagamentoNaVenda` | sucesso |
+    | T-6 | `fechaVenda_deveRatearDescontoEAcrescimoComSinaisTrocados_nasParcelasAPrazo` | DEFEITO |
+    | T-7 | `fechaVenda_deveSubtrairOAcrescimo_noLancamentoDeCaixaAVista` | DEFEITO |
+    | T-9a | `fechaVenda_deveLancarErroTecnico_quandoTituloNaoExiste` | DEFEITO |
+    | T-9b | `fechaVenda_deveLancarErroTecnico_quandoVendaNaoExiste` | DEFEITO |
+
+- **Execução** (container Java 8): `VendaServiceTest` com 41 testes, 0 falhas
+  e 0 erros. Suíte completa: 102 testes, com o mesmo único erro preexistente
+  de `PdvApplicationTests`, que exige MySQL.
+- **Medições:**
+
+  | Métrica | Antes (D-07) | Depois |
+  |---|---|---|
+  | Testes em `VendaServiceTest` | 32 | 41 |
+  | JaCoCo, instruções | 99% | **100%** |
+  | JaCoCo, ramos (todas-arestas) | 97% (37/38) | **100%** (38/38) |
+  | JaCoCo, linhas | 124/126 | **126/126** |
+  | PIT, escore de mutação | 79% (52/66) | **91%** (60/66) |
+
+- **Os 6 mutantes sobreviventes são equivalentes:** nenhum teste consegue
+  distingui-los do código original, porque não mudam nenhum comportamento
+  observável. A justificativa detalhada fica para a Etapa 4:
+  - L193, L242 e L316 removem `System.out.println(e)` dentro de `catch`. Só
+    afetam o console, e a exceção relançada é a mesma.
+  - L290 (`qtdVezes - 1` → `+ 1`) e L319 (retorno trocado por 0) alteram
+    `qtdVezes`, que é repassado a `aprazo()` mas nunca é lido.
+  - L179 nega a condição do laço que preenche `modeloPagar`, um mapa que nunca
+    é consultado.
+
+### D-12 — Commit da Etapa 1
+
+- **Proposta:** commitar `VendaServiceTest.java` e este registro na branch
+  `test/venda-service-entrega2`, em nome do responsável e sem coautoria da IA.
+- **Alternativa apresentada:** revisar as alterações antes.
+- **Decisão:** commitar.
+- **Efeito:** commit local, ainda não enviado ao remoto.
