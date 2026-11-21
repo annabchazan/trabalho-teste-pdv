@@ -710,3 +710,49 @@ de `VendaService` não precisa alterar o build.
 - **Decisão:** commitar.
 - **Efeito:** commit local, ainda não enviado ao remoto. Com ele, as 9
   etapas da Entrega 2 de `VendaService` estão concluídas.
+
+## 2026-11-21 — Issues dos defeitos de VendaService
+
+### D-35 — Abertura das Issues
+
+- **Contexto:** depois do push, feito pelo responsável, ele perguntou se
+  faltava abrir alguma Issue. Só os defeitos D-VEN-01 (#7) e D-VEN-02 (#8)
+  tinham Issue.
+- **Proposta da IA:** reunir os outros 17 defeitos em 8 Issues e abrir mais 1
+  de usabilidade (o "x" de remover produto na venda fechada), no formato da
+  #7 e da #8. Os textos foram escritos num rascunho e aprovados pelo
+  responsável ("Abrir as 9").
+- **Como foram abertas:** o navegador do app não estava logado no GitHub e o
+  Claude in Chrome não conectou. A IA então passou os títulos e as
+  descrições, e o responsável abriu as Issues com a própria conta.
+- **Resultado** (conferido pela API do GitHub; o texto de todas é igual ao
+  aprovado):
+
+  | Issue | Defeitos |
+  |---|---|
+  | #14 | D-VEN-06 (cartão sem máquina) |
+  | #15 | D-VEN-04 (exceções engolidas) |
+  | #16 | TF-VEN-05, 06 e 07 (desconto e acréscimo inválidos) |
+  | #17 | D-VEN-05, 07 e 08; T-9a, T-9b; TF-VEN-09, 10 e 12 (erros técnicos ao usuário) |
+  | #18 | D-VEN-03 (um update por forma de pagamento) |
+  | #19 | D-VEN-09 (conta a receber sem parcelas) |
+  | #20 | D-VEN-10 (taxa de cartão sem validação) |
+  | #21 | usabilidade: "x" na venda fechada |
+  | #22 | T-3 (título à vista de outro tipo) |
+
+  Nenhuma ficou com o rótulo `bug`, porque a conta do responsável não pode
+  pôr rótulos no repositório. O GitHub sugeriu a #14 como possível duplicata
+  da #22; a IA explicou que são defeitos diferentes.
+- **Severidade:** os 9 defeitos achados na Entrega 2 entraram nas Issues
+  como de severidade média; o documento ISO foi atualizado.
+- **Documentos:** coluna "Issue" na tabela de defeitos de
+  `docs/medidas-iso25010-venda.md` e lista das Issues no README. O rascunho
+  e a página HTML de links foram apagados.
+
+### D-36 — Commit das Issues
+
+- **Proposta:** commitar o README, o documento ISO e este registro na branch
+  `test/venda-service-entrega2`, em nome do responsável e sem coautoria da IA.
+- **Alternativa apresentada:** revisar as alterações antes.
+- **Decisão:** commitar.
+- **Efeito:** commit local; o push fica com o responsável.

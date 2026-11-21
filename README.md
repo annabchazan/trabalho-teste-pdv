@@ -66,6 +66,7 @@ usado como alvo de teste na disciplina Qualidade e Teste.
   - Inspeção com o SonarQube e correções: [`docs/inspecao-sonar-venda.md`](docs/inspecao-sonar-venda.md)
   - Medidas ISO/IEC 25010: [`docs/medidas-iso25010-venda.md`](docs/medidas-iso25010-venda.md)
 - Resultados: 100% de arestas e de mutação (60/60); Sonar de 11 problemas para 0; 19 defeitos registrados, nenhum corrigido por decisão
+- Defeitos encontrados (19, agrupados em 10 Issues) e 1 problema de usabilidade: Issues [#7](../../issues/7), [#8](../../issues/8), [#14](../../issues/14), [#15](../../issues/15), [#16](../../issues/16), [#17](../../issues/17), [#18](../../issues/18), [#19](../../issues/19), [#20](../../issues/20), [#22](../../issues/22); usabilidade: [#21](../../issues/21)
 - Evidências de JaCoCo, PIT, SonarQube, integração e Selenium: [`docs/evidencias/entrega2/`](docs/evidencias/entrega2/)
 - Registro das decisões e do uso de IA na Entrega 2: [`docs/ai/decisoes-entrega2-venda.md`](docs/ai/decisoes-entrega2-venda.md)
 

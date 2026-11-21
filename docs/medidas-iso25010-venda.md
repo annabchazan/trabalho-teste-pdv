@@ -217,6 +217,8 @@ testes manuais:
    valor da balança (D-VEN-07), e um alerta vazio quando a parcela não é
    gerada (D-VEN-08).
 
+As duas observações estão nas Issues [#21](https://github.com/annabchazan/trabalho-teste-pdv/issues/21) e [#17](https://github.com/annabchazan/trabalho-teste-pdv/issues/17).
+
 **Avaliação:** ⚠️
 
 ## 6. Segurança
@@ -232,33 +234,34 @@ testes manuais:
 ## 7. Situação final dos defeitos
 
 Nenhum defeito foi corrigido na Entrega 2 (M3). Todos estão registrados em
-teste ou em caso manual.
+teste ou em caso manual. Cada um tem uma Issue no GitHub; alguns defeitos parecidos foram
+reunidos na mesma Issue.
 
-| ID | Defeito | Severidade | Onde está | Evidência |
-|---|---|---|---|---|
-| D-VEN-01 | Desconto e acréscimo trocados no caixa e nas parcelas | Alta | `VendaService` | T-6, T-7, TS-VEN-06 (`@Ignore`) |
-| D-VEN-02 | Conferência das parcelas à vista soma sempre a mesma parcela; venda mista é recusada | Alta | `VendaService` | TU-VEN-27 |
-| D-VEN-03 | Um update de fechamento por forma de pagamento | Média | `VendaService` | TU-VEN-28 |
-| D-VEN-04 | Falhas engolidas em `abreVenda`, `addProduto` e `removeProduto` | Média | `VendaService` | TU-VEN-03, 09, 12; T-1 |
-| D-VEN-05 | Fechar sem título gera `NumberFormatException` (condição de corrida em `venda.js`) | Média | `venda.js` e `VendaService` | CT-VENDA (manual) |
-| D-VEN-06 | Título de cartão sem máquina gera `NullPointerException` | Alta | cadastro de título e `CartaoLancamentoService` | CT-VENDA (manual) |
-| D-VEN-07 | Cancelar o valor da balança gera `NumberFormatException` | Baixa | `VendaController` | CT-VENDA (manual) |
-| D-VEN-08 | Erro na geração de parcela sobe sem mensagem | Média | `VendaService` | TU-VEN-31 |
-| D-VEN-09 | Venda à vista cria conta a receber sem parcelas | Baixa | `VendaService` | CT-VENDA (manual) |
-| D-VEN-10 | Taxa de cartão sem validação; líquido negativo | Baixa | cartão | CT-VENDA (manual) |
-| T-3 | Título à vista que não é dinheiro nem cartão fecha a venda sem registrar o recebimento | não classificada | `VendaService` | T-3 |
-| T-9a | Título inexistente gera erro técnico (`NoSuchElementException`) | não classificada | `VendaService` | T-9a |
-| T-9b | Venda inexistente gera erro técnico (`NullPointerException`) | não classificada | `VendaService` | T-9b |
-| TF-VEN-05 | Desconto igual ao total fecha a venda por R$ 0,00 | não classificada | `VendaService` | TF-VEN-05 |
-| TF-VEN-06 | Desconto maior que o total fecha a venda com valor negativo | não classificada | `VendaService` | TF-VEN-06 |
-| TF-VEN-07 | Acréscimo negativo é aceito e vira desconto | não classificada | `VendaService` | TF-VEN-07 |
-| TF-VEN-09 | Faltar título gera `ArrayIndexOutOfBoundsException` depois da 1ª parcela | não classificada | `VendaService` | TF-VEN-09 |
-| TF-VEN-10 | Incluir produto em venda inexistente gera `NullPointerException` | não classificada | `VendaService` | TF-VEN-10 |
-| TF-VEN-12 | Situação nula na busca gera `NullPointerException` | não classificada | `VendaService` | TF-VEN-12 |
+| ID | Defeito | Severidade | Onde está | Evidência | Issue |
+|---|---|---|---|---|---|
+| D-VEN-01 | Desconto e acréscimo trocados no caixa e nas parcelas | Alta | `VendaService` | T-6, T-7, TS-VEN-06 (`@Ignore`) | [#7](https://github.com/annabchazan/trabalho-teste-pdv/issues/7) |
+| D-VEN-02 | Conferência das parcelas à vista soma sempre a mesma parcela; venda mista é recusada | Alta | `VendaService` | TU-VEN-27 | [#8](https://github.com/annabchazan/trabalho-teste-pdv/issues/8) |
+| D-VEN-03 | Um update de fechamento por forma de pagamento | Média | `VendaService` | TU-VEN-28 | [#18](https://github.com/annabchazan/trabalho-teste-pdv/issues/18) |
+| D-VEN-04 | Falhas engolidas em `abreVenda`, `addProduto` e `removeProduto` | Média | `VendaService` | TU-VEN-03, 09, 12; T-1 | [#15](https://github.com/annabchazan/trabalho-teste-pdv/issues/15) |
+| D-VEN-05 | Fechar sem título gera `NumberFormatException` (condição de corrida em `venda.js`) | Média | `venda.js` e `VendaService` | CT-VENDA (manual) | [#17](https://github.com/annabchazan/trabalho-teste-pdv/issues/17) |
+| D-VEN-06 | Título de cartão sem máquina gera `NullPointerException` | Alta | cadastro de título e `CartaoLancamentoService` | CT-VENDA (manual) | [#14](https://github.com/annabchazan/trabalho-teste-pdv/issues/14) |
+| D-VEN-07 | Cancelar o valor da balança gera `NumberFormatException` | Baixa | `VendaController` | CT-VENDA (manual) | [#17](https://github.com/annabchazan/trabalho-teste-pdv/issues/17) |
+| D-VEN-08 | Erro na geração de parcela sobe sem mensagem | Média | `VendaService` | TU-VEN-31 | [#17](https://github.com/annabchazan/trabalho-teste-pdv/issues/17) |
+| D-VEN-09 | Venda à vista cria conta a receber sem parcelas | Baixa | `VendaService` | CT-VENDA (manual) | [#19](https://github.com/annabchazan/trabalho-teste-pdv/issues/19) |
+| D-VEN-10 | Taxa de cartão sem validação; líquido negativo | Baixa | cartão | CT-VENDA (manual) | [#20](https://github.com/annabchazan/trabalho-teste-pdv/issues/20) |
+| T-3 | Título à vista que não é dinheiro nem cartão fecha a venda sem registrar o recebimento | Média | `VendaService` | T-3 | [#22](https://github.com/annabchazan/trabalho-teste-pdv/issues/22) |
+| T-9a | Título inexistente gera erro técnico (`NoSuchElementException`) | Média | `VendaService` | T-9a | [#17](https://github.com/annabchazan/trabalho-teste-pdv/issues/17) |
+| T-9b | Venda inexistente gera erro técnico (`NullPointerException`) | Média | `VendaService` | T-9b | [#17](https://github.com/annabchazan/trabalho-teste-pdv/issues/17) |
+| TF-VEN-05 | Desconto igual ao total fecha a venda por R$ 0,00 | Média | `VendaService` | TF-VEN-05 | [#16](https://github.com/annabchazan/trabalho-teste-pdv/issues/16) |
+| TF-VEN-06 | Desconto maior que o total fecha a venda com valor negativo | Média | `VendaService` | TF-VEN-06 | [#16](https://github.com/annabchazan/trabalho-teste-pdv/issues/16) |
+| TF-VEN-07 | Acréscimo negativo é aceito e vira desconto | Média | `VendaService` | TF-VEN-07 | [#16](https://github.com/annabchazan/trabalho-teste-pdv/issues/16) |
+| TF-VEN-09 | Faltar título gera `ArrayIndexOutOfBoundsException` depois da 1ª parcela | Média | `VendaService` | TF-VEN-09 | [#17](https://github.com/annabchazan/trabalho-teste-pdv/issues/17) |
+| TF-VEN-10 | Incluir produto em venda inexistente gera `NullPointerException` | Média | `VendaService` | TF-VEN-10 | [#17](https://github.com/annabchazan/trabalho-teste-pdv/issues/17) |
+| TF-VEN-12 | Situação nula na busca gera `NullPointerException` | Média | `VendaService` | TF-VEN-12 | [#17](https://github.com/annabchazan/trabalho-teste-pdv/issues/17) |
 
 As severidades da Entrega 1 vêm do
-[`plano-teste-venda.md`](plano-teste-venda.md). Os defeitos achados na
-Entrega 2 não foram classificados.
+[`plano-teste-venda.md`](plano-teste-venda.md). Os 9 defeitos achados na
+Entrega 2 foram classificados como de severidade média na abertura das Issues.
 
 ## 8. Limitações
 
