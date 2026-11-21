@@ -49,6 +49,9 @@ public class RecebimentoSistemaIT {
 	private static final long PARCELA_50 = 9302L;
 	private static final long CAIXA = 9301L;
 	private static final long TITULO_DINHEIRO = 9301L;
+	private static final long GRUPO_SEM_PERMISSAO = 9301L;
+	private static final long USUARIO_SEM_PERMISSAO = 9301L;
+	private static final String LOGIN_SEM_PERMISSAO = "operador-sel-9301";
 	private static final double DELTA = 0.001;
 
 	// requisito não funcional de desempenho: o recebimento confirmado em até 2 s
@@ -193,11 +196,63 @@ public class RecebimentoSistemaIT {
 			assertTrue("recebimento levou " + tempo + " ms; tempos: " + tempos, tempo <= LIMITE_MS);
 	}
 
+	// TS-REC-07: não funcional (segurança) - usuário sem a permissão
+	// REALIZAR_RECEBIMENTO não pode receber, mesmo chamando o endereço direto.
+	// Falha hoje pelo defeito D9: no SecurityConfig a regra é "/recebimento/", que
+	// não corresponde a nenhuma requisição real; o sistema só esconde o botão.
+	// @Ignore até o defeito ser corrigido - remover a anotação reproduz a falha.
+	@org.junit.Ignore("Defeito D9: SecurityConfig protege \"/recebimento/\" em vez de \"/recebimento/**\"; ver docs/bugs/defeitos-recebimento.md")
+	@Test
+	public void usuarioSemPermissao_naoPodeReceberPeloEnderecoDireto() throws SQLException {
+		long recebimento = 9301L;
+		executa("insert into recebimento (codigo, valor_total, pessoa_codigo, data_cadastro) values (?, 150, ?, now())",
+				recebimento, CLIENTE);
+		executa("insert into recebimento_parcelas (recebimento_cod, parcela_cod) values (?, ?), (?, ?)", recebimento,
+				PARCELA_100, recebimento, PARCELA_50);
+		executa("insert into grupousuario (codigo, nome, descricao) values (?, 'SEM RECEBIMENTO SEL', 'Teste Selenium')",
+				GRUPO_SEM_PERMISSAO);
+		executa("insert into permissoes_grupo_usuario (grupo_usuario_codigo, permissoes_codigo) values (?, 1)",
+				GRUPO_SEM_PERMISSAO);
+		// mesma senha do gerente (123)
+		executa("insert into usuario (codigo, user, senha, data_cadastro, pessoa_codigo) "
+				+ "select ?, ?, senha, now(), ? from usuario where user = 'gerente'", USUARIO_SEM_PERMISSAO,
+				LOGIN_SEM_PERMISSAO, CLIENTE);
+		executa("insert into usuario_grupousuario (grupo_usuario_codigo, usuario_codigo) values (?, ?)",
+				GRUPO_SEM_PERMISSAO, USUARIO_SEM_PERMISSAO);
+
+		entraNoSistema(LOGIN_SEM_PERMISSAO);
+
+		// controle: a lista de contas a receber já é bloqueada para esse usuário
+		assertEquals(403L, status("GET", "/receber"));
+
+		long resposta = status("POST", "/recebimento?receber=" + recebimento + "&titulo=" + TITULO_DINHEIRO
+				+ "&vlrecebido=150.00&desconto=&acrescimo=");
+
+		assertEquals("o servidor deveria negar o recebimento", 403L, resposta);
+		assertEquals(0, consultaLong("select quitado from parcela where codigo = ?", PARCELA_100));
+		assertEquals(0, consultaLong("select count(*) from caixa_lancamento where caixa_codigo = ?", CAIXA));
+	}
+
 	// passos na interface
 
+	// faz a requisição de dentro da página, com a sessão do usuário logado, e
+	// devolve o status HTTP
+	private long status(String metodo, String caminho) {
+		Object status = ((JavascriptExecutor) driver).executeAsyncScript(
+				"var pronto = arguments[arguments.length - 1];"
+						+ "fetch(arguments[1], {method: arguments[0], credentials: 'same-origin', redirect: 'manual'})"
+						+ ".then(function (r) { pronto(r.status); }, function () { pronto(-1); });",
+				metodo, URL + caminho);
+		return ((Number) status).longValue();
+	}
+
 	private void entraNoSistema() {
+		entraNoSistema("gerente");
+	}
+
+	private void entraNoSistema(String usuario) {
 		driver.get(URL + "/login");
-		driver.findElement(By.name("username")).sendKeys("gerente");
+		driver.findElement(By.name("username")).sendKeys(usuario);
 		driver.findElement(By.name("password")).sendKeys("123");
 		driver.findElement(By.id("btn-login")).click();
 		espera.until(d -> !d.getCurrentUrl().contains("/login"));
@@ -293,6 +348,10 @@ public class RecebimentoSistemaIT {
 		executa("delete from parcela where receber_codigo = ?", RECEBER);
 		executa("delete from receber where codigo = ?", RECEBER);
 		executa("delete from venda where codigo = ?", VENDA);
+		executa("delete from usuario_grupousuario where usuario_codigo = ?", USUARIO_SEM_PERMISSAO);
+		executa("delete from usuario where codigo = ?", USUARIO_SEM_PERMISSAO);
+		executa("delete from permissoes_grupo_usuario where grupo_usuario_codigo = ?", GRUPO_SEM_PERMISSAO);
+		executa("delete from grupousuario where codigo = ?", GRUPO_SEM_PERMISSAO);
 		executa("delete from titulo where codigo = ?", TITULO_DINHEIRO);
 		executa("delete from caixa where codigo = ?", CAIXA);
 		executa("delete from pessoa where codigo = ?", CLIENTE);
