@@ -245,9 +245,9 @@ contra o código de produção. Oito cenários são testes de caracterização d
 - **Contexto/Prompt (resumo):** pedido para ler o enunciado e o Plano de Teste e
   fazer a parte do João na Entrega 2. A IA propôs um plano (aprovado pelo
   responsável) e perguntou o que fazer com os defeitos D1, D2, D3 e D6, já que os
-  outros integrantes não corrigiram os seus. Instrução do responsável: "se a
-  entrega 2 pede para resolver, resolva". Outra instrução: medir o estado inicial
-  antes de qualquer mudança.
+  outros integrantes não corrigiram os seus. Resposta do responsável: "se a
+  entrega 2 pede para resolver, resolva". O plano proposto pela IA e aprovado
+  pelo responsável previa medir o estado inicial antes de qualquer mudança.
 - **Artefatos afetados:**
   - `src/main/java/net/originmobi/pdv/service/RecebimentoService.java` (correções)
   - `src/test/java/net/originmobi/pdv/service/RecebimentoServiceTest.java` (TU-REC-26 a 43)
@@ -263,8 +263,9 @@ contra o código de produção. Oito cenários são testes de caracterização d
   terceiro defeito novo fora da classe (D9, de segurança), além das medidas da
   ISO 25010.
 - **Decisão:** aceito, com as alterações descritas em
-  `docs/ai/revisao-recebimento-service.md`, seção 6. D4, D5 e D9 não foram
-  corrigidos porque estão fora da classe (esquema do banco e `SecurityConfig`).
+  `docs/ai/revisao-recebimento-service.md`, seção 6. A IA propôs não corrigir D4,
+  D5 e D9, que estão fora da classe (esquema do banco e `SecurityConfig`); a
+  proposta constava do plano aprovado pelo responsável.
 - **Validação realizada:**
   1. Estado inicial medido antes de mudar o código: 94,1% de arestas, 85% de
      escore de mutação e 10 problemas no Sonar.

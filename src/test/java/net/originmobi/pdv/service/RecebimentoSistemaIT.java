@@ -35,6 +35,9 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  * MySQL do docker-compose (localhost:3307) com códigos 93xx e apagada antes e
  * depois de cada caso. Por padrão o Chrome roda sem janela;
  * -Dselenium.headless=false mostra o navegador.
+ *
+ * Pré-condição: nenhum caixa aberto no banco antes da execução, porque o
+ * serviço usa "o" caixa aberto. O setUp falha com mensagem clara se houver.
  */
 public class RecebimentoSistemaIT {
 
@@ -66,6 +69,11 @@ public class RecebimentoSistemaIT {
 	public void setUp() throws SQLException {
 		banco = DriverManager.getConnection(DB_URL, "root", "123456");
 		limpa();
+		// o serviço usa "o" caixa aberto: outro caixa aberto desviaria o lançamento
+		long abertos = consultaLong("select count(*) from caixa where tipo = 'CAIXA' and data_fechamento is null");
+		if (abertos > 0)
+			org.junit.Assert.fail("Pré-condição: o banco não pode ter caixa aberto antes destes testes (encontrados: "
+					+ abertos + "). Feche-o, por exemplo: update caixa set data_fechamento = now() where data_fechamento is null");
 		criaMassaDeDados();
 
 		ChromeOptions opcoes = new ChromeOptions();

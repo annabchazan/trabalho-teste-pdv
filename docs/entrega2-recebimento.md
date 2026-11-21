@@ -218,7 +218,7 @@ SonarQube Community 26.11 em Docker, análise do projeto inteiro com a cobertura
 
 As 9 dependências passaram a ser recebidas pelo construtor, e o D1 foi corrigido.
 A complexidade subiu porque as correções acrescentaram validações (D2, D3, D6, D7 e
-D8) e três métodos auxiliares; a complexidade cognitiva, que mede a dificuldade de
+D8) e quatro métodos auxiliares; a complexidade cognitiva, que mede a dificuldade de
 leitura, subiu pouco (35 → 38).
 
 O Sonar não aponta D2, D3, D6, D7 nem D8: eles só apareceram pelo projeto dos testes.
@@ -388,6 +388,10 @@ docker compose up -d
 docker compose run --rm --no-deps -v pdv-m2:/root/.m2 pdv-app mvn -B test-compile
 ./mvnw failsafe:integration-test failsafe:verify -Dit.test=RecebimentoSistemaIT
 ```
+
+**Pré-condição dos testes de integração e de sistema:** nenhum caixa aberto no banco,
+porque o serviço usa "o" caixa aberto (`CaixaRepository.caixaAberto()`). Se houver, o
+`setUp` falha com uma mensagem que diz como fechá-lo.
 
 O último comando roda os testes de sistema na máquina, onde está o Chrome, sem
 recompilar. Com um JDK 8 instalado, `./mvnw verify -Dit.test=RecebimentoSistemaIT`

@@ -48,7 +48,7 @@ testes de regressão. Detalhes em [`docs/entrega2-recebimento.md`](../entrega2-r
 
 ## D1 — Comparação de `Long` com `!=` rejeita parcelas do próprio cliente
 
-**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:72`
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:72` (versão da Entrega 1)
 **Teste:** TU-REC-06 (`abrirRecebimento_deveAceitarParcela_quandoClienteTemCodigoAcimaDoCacheDeLong`)
 **Issue:** [#4](https://github.com/annabchazan/trabalho-teste-pdv/issues/4)
 **Severidade:** Alta — impede o recebimento na operação real.
@@ -92,7 +92,7 @@ if (!parcela.getReceber().getPessoa().getCodigo().equals(codpes))
 
 ## D2 — `NullPointerException` quando o título não é informado
 
-**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:108`
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:108` (versão da Entrega 1)
 **Teste:** TU-REC-19 (`receber_deveLancarMensagemAmigavel_quandoCodigoDoTituloENulo`)
 **Issue:** [#5](https://github.com/annabchazan/trabalho-teste-pdv/issues/5)
 **Severidade:** Média — validação existe, mas é inalcançável.
@@ -131,7 +131,7 @@ usar `Long.valueOf(0L).equals(codtitulo)`.
 
 ## D3 — `NoSuchElementException` ("No value present") com título inexistente
 
-**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:106` e `:115`
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:106` e `:115` (versão da Entrega 1)
 **Teste:** TU-REC-20 (`receber_deveLancarMensagemAmigavel_quandoTituloNaoExiste`)
 **Issue:** [#6](https://github.com/annabchazan/trabalho-teste-pdv/issues/6)
 **Severidade:** Média — erro técnico vazando para o usuário.
@@ -343,7 +343,7 @@ justifica priorizar **testes de integração com banco real** na Entrega 2.
 
 ## D6 — `NumberFormatException` ao receber sem selecionar parcelas
 
-**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:67`
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:67` (versão da Entrega 1)
 e `src/main/java/net/originmobi/pdv/controller/ReceberController.java:97`
 **Teste:** TU-REC-25 (`abrirRecebimento_deveLancarMensagemAmigavel_quandoNenhumaParcelaFoiSelecionada`)
 **Encontrado em:** execução do CT-REC-01, passo 5

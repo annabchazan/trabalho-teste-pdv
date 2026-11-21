@@ -29,6 +29,9 @@ import org.springframework.test.context.junit4.SpringRunner;
  * comparação de códigos do defeito D1. As parcelas são inseridas com
  * data_alteracao preenchida para não esbarrar no defeito D4 (Issue #10), que é
  * do esquema do banco e não desta classe.
+ *
+ * Pré-condição: nenhum caixa aberto no banco antes da execução, porque o
+ * serviço usa "o" caixa aberto. O setUp falha com mensagem clara se houver.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -60,6 +63,7 @@ public class RecebimentoServiceIT {
 	public void setUp() {
 		entraComo("gerente");
 		limpa();
+		exigeNenhumOutroCaixaAberto();
 		criaMassaDeDados();
 	}
 
@@ -252,6 +256,16 @@ public class RecebimentoServiceIT {
 
 	private int conta(String sql, long codigo) {
 		return jdbc.queryForObject(sql, Integer.class, codigo);
+	}
+
+	// CaixaRepository.caixaAberto() espera um único caixa aberto; outro caixa
+	// aberto no banco (de outra suíte ou de uso manual) desviaria o lançamento
+	private void exigeNenhumOutroCaixaAberto() {
+		int abertos = jdbc.queryForObject(
+				"select count(*) from caixa where tipo = 'CAIXA' and data_fechamento is null", Integer.class);
+		if (abertos > 0)
+			fail("Pré-condição: o banco não pode ter caixa aberto antes destes testes (encontrados: " + abertos
+					+ "). Feche-o, por exemplo: update caixa set data_fechamento = now() where data_fechamento is null");
 	}
 
 	private void criaMassaDeDados() {

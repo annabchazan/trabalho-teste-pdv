@@ -196,8 +196,14 @@ Os testes de integração passaram pela mesma checagem (7 falhas contra o códig
 antigo, todas pelo D1), e o TS-REC-07 foi executado sem o `@Ignore` para confirmar
 que falha pelo D9 (`expected:<403> but was:<200>`).
 
-O que foi decisão do responsável, e não da IA: corrigir os defeitos da própria
-classe (o enunciado pede resolver os problemas apontados pela inspeção); não
-corrigir D4, D5 e D9, que estão fora da classe e afetam os outros integrantes; e
-manter a mensagem "Erro ao remover orçamento" no `remover()`, que é estranha mas
-não muda comportamento.
+Decisão do responsável: corrigir os defeitos da própria classe ("se a entrega 2
+pede para resolver, resolva"). Propostas da IA que constavam do plano aprovado por
+ele: medir o estado inicial antes de mudar o código e não corrigir D4, D5 e D9, que
+estão fora da classe e afetam os outros integrantes. Também por proposta da IA, a
+mensagem "Erro ao remover orçamento" do `remover()` foi mantida: é estranha, mas
+mudá-la não estava no escopo.
+
+D7 e D8 não são apontados pelo Sonar; foram corrigidos por estarem na mesma classe
+e terem sido encontrados pelo projeto funcional. A reescrita do rateio com
+`Math.min` também não era exigida pelo Sonar: foi feita para simplificar o laço, e
+os testes de rateio da Entrega 1 garantem que o resultado não mudou.
