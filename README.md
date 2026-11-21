@@ -69,11 +69,15 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 
 **João Portela — `RecebimentoService`**
 
-- Testes unitários TU-REC-01..25: [`RecebimentoServiceTest.java`](src/test/java/net/originmobi/pdv/service/RecebimentoServiceTest.java)
+- **Relatório da Entrega 2** (projeto funcional, JaCoCo, PIT, Sonar, integração, Selenium e ISO 25010): [`docs/entrega2-recebimento.md`](docs/entrega2-recebimento.md)
+- Testes unitários TU-REC-01..43: [`RecebimentoServiceTest.java`](src/test/java/net/originmobi/pdv/service/RecebimentoServiceTest.java)
+- Testes de integração TI-REC-01..07: [`RecebimentoServiceIT.java`](src/test/java/net/originmobi/pdv/service/RecebimentoServiceIT.java)
+- Testes de sistema (Selenium) TS-REC-01..07: [`RecebimentoSistemaIT.java`](src/test/java/net/originmobi/pdv/service/RecebimentoSistemaIT.java)
+- Evidências de JaCoCo, PIT e SonarQube, antes e depois: [`docs/evidencias/entrega2/recebimento/`](docs/evidencias/entrega2/recebimento/)
 - Casos de teste manual CT-REC-01..03 — **executados**, com resultados obtidos: [`docs/testes-manuais/CT-REC-01.md`](docs/testes-manuais/CT-REC-01.md)
-- Defeitos encontrados (D1 a D6): [`docs/bugs/defeitos-recebimento.md`](docs/bugs/defeitos-recebimento.md) — Issues [#4](../../issues/4), [#5](../../issues/5), [#6](../../issues/6), [#10](../../issues/10), [#11](../../issues/11), [#12](../../issues/12)
-- Solução inicial gerada com IA, preservada: [`docs/ai/snapshots/RecebimentoServiceTest.v1-ia.java`](docs/ai/snapshots/RecebimentoServiceTest.v1-ia.java)
-- Revisão da solução gerada com IA: [`docs/ai/revisao-recebimento-service.md`](docs/ai/revisao-recebimento-service.md)
+- Defeitos encontrados (D1 a D9; D1, D2, D3, D6, D7 e D8 corrigidos na Entrega 2): [`docs/bugs/defeitos-recebimento.md`](docs/bugs/defeitos-recebimento.md) — Issues [#4](../../issues/4), [#5](../../issues/5), [#6](../../issues/6), [#10](../../issues/10), [#11](../../issues/11), [#12](../../issues/12)
+- Soluções iniciais geradas com IA, preservadas: [`v1`](docs/ai/snapshots/RecebimentoServiceTest.v1-ia.java) (Entrega 1) e [`v2`](docs/ai/snapshots/RecebimentoServiceTest.v2-ia.java) (Entrega 2)
+- Revisão das soluções geradas com IA: [`docs/ai/revisao-recebimento-service.md`](docs/ai/revisao-recebimento-service.md)
 
 **João Pedro G. Valadares — `CaixaService`**
 

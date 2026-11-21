@@ -151,3 +151,53 @@ Issue, em vez de ajustar a asserção para o comportamento errado), o recorte do
 é defeito e do que é observação de qualidade, e a decisão de não alterar `src/main`
 nesta entrega foram do responsável. A IA executou, apontou causas raiz e foi
 confrontada com a execução real a cada passo.
+
+---
+
+## 6. Entrega 2 — revisão da segunda solução gerada com IA (v2 → final)
+
+Responsável: **João Portela** · Data: 2026-11-21 · Ferramenta: Claude Code (Claude Opus 5.5)
+
+| Artefato | Onde está |
+|---|---|
+| Solução inicial da Entrega 2, gerada com IA (casos TU-REC-26 a 42, antes de qualquer execução) | [`snapshots/RecebimentoServiceTest.v2-ia.java`](snapshots/RecebimentoServiceTest.v2-ia.java) |
+| Solução final | [`RecebimentoServiceTest.java`](../../src/test/java/net/originmobi/pdv/service/RecebimentoServiceTest.java) |
+
+A v2 foi gerada a partir do projeto funcional (`docs/entrega2-recebimento.md`,
+seção 1) e executada contra o código **ainda sem correções**. Resultado: 12 casos
+novos passaram e 5 falharam — TU-REC-27 (D1), 28 (D6), 40 (D3), 41 e 42. As falhas
+de 41 e 42 não correspondiam a nenhum defeito conhecido e foram investigadas no
+código antes de qualquer correção: viraram os defeitos **D7** e **D8**.
+
+Alterações feitas depois, e por quê:
+
+1. **TU-REC-16 ganhou a simulação de caixa aberto.** A correção do D7 passou a
+   validar o caixa antes de quitar as parcelas; sem caixa simulado, o teste parava
+   na nova validação e não chegava à falha de quitação que ele quer exercitar.
+   A asserção não mudou.
+2. **TU-REC-40 e 41 perderam simulações que deixaram de ser usadas.** Com o
+   Mockito em modo estrito, a suíte acusou `UnnecessaryStubbingException`: depois
+   da correção, o título não é mais buscado quando o recebimento não existe, e o
+   usuário não é mais buscado quando o caixa está fechado. Remover as simulações
+   documenta essa ordem nova.
+3. **TU-REC-41 ganhou uma verificação.** A v2 conferia só que nada era lançado no
+   caixa; a versão final confere também que nenhuma parcela é quitada, que é o
+   ponto da correção do D7.
+4. **TU-REC-43 foi acrescentado.** O relatório do JaCoCo, depois das correções,
+   mostrou 2 arestas descobertas no tratamento da lista de parcelas. Uma era a
+   proteção contra elemento nulo, que nunca ocorre (o `split` não gera nulo) e foi
+   removida do código; a outra, lista nula, ganhou este caso.
+5. **Os 4 `@Ignore` da Entrega 1 foram removidos** (TU-REC-06, 19, 20 e 25),
+   depois das correções.
+
+Verificação: a suíte final foi executada contra o código da Entrega 1 (10 falhas,
+todas dos defeitos D1, D2, D3, D6, D7 e D8) e contra o código corrigido (43 de 43).
+Os testes de integração passaram pela mesma checagem (7 falhas contra o código
+antigo, todas pelo D1), e o TS-REC-07 foi executado sem o `@Ignore` para confirmar
+que falha pelo D9 (`expected:<403> but was:<200>`).
+
+O que foi decisão do responsável, e não da IA: corrigir os defeitos da própria
+classe (o enunciado pede resolver os problemas apontados pela inspeção); não
+corrigir D4, D5 e D9, que estão fora da classe e afetam os outros integrantes; e
+manter a mensagem "Erro ao remover orçamento" no `remover()`, que é estranha mas
+não muda comportamento.
