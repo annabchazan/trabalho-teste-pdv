@@ -756,3 +756,32 @@ de `VendaService` não precisa alterar o build.
 - **Alternativa apresentada:** revisar as alterações antes.
 - **Decisão:** commitar.
 - **Efeito:** commit local; o push fica com o responsável.
+
+## 2026-11-21 — Google Docs
+
+### D-37 — Conteúdo para o Google Docs e link no README
+
+- **Pedido do responsável:** a capa da Entrega 2 e o conteúdo da parte dele
+  para colar no Google Docs do grupo.
+- **O que a IA fez:**
+  - escreveu a capa no chat, com o nome da professora e a cidade em aberto,
+    porque não estão no repositório. A universidade foi deduzida do endereço
+    do TestLink (`ic.uff.br`), e o responsável foi avisado para conferir;
+  - juntou os rascunhos das Etapas 2 a 8 numa página HTML, com as tabelas e
+    18 prints embutidos, para copiar e colar. A Etapa 1, que não tinha
+    documento próprio, ganhou uma seção escrita a partir das decisões D-10 e
+    D-11. Os links para o repositório passaram a apontar para o GitHub. A
+    página não foi commitada.
+- **Link:** o responsável passou o link do Google Docs do grupo, que é o
+  mesmo do Plano de Teste. Ele substituiu o "[preencher link]" na seção do
+  responsável no README.
+- **Depois:** o responsável colou o conteúdo no Google Docs e pediu para
+  apagar a página HTML, que foi apagada.
+
+### D-38 — Commit do link do Google Docs
+
+- **Proposta:** commitar o README e este registro na branch
+  `test/venda-service-entrega2`, em nome do responsável e sem coautoria da IA.
+- **Alternativa apresentada:** não commitar agora.
+- **Decisão:** commitar.
+- **Efeito:** commit local; o push fica com o responsável.

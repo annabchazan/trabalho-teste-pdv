@@ -58,7 +58,7 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 - Testes de integração TI-VEN-01..08: [`VendaServiceIT.java`](src/test/java/net/originmobi/pdv/service/VendaServiceIT.java)
 - Testes de sistema (Selenium) TS-VEN-01..07, com o requisito não funcional de desempenho: [`VendaSistemaIT.java`](src/test/java/net/originmobi/pdv/service/VendaSistemaIT.java)
 - Casos de teste manual CT-VENDA-01..11: [`docs/testes-manuais/CT-VENDA-01.md`](docs/testes-manuais/CT-VENDA-01.md)
-- Entrega 2, documentos (rascunhos das seções do Google Docs: [preencher link]):
+- Entrega 2, documentos (rascunhos; versão oficial no [Google Docs](https://docs.google.com/document/d/1oVK7AhjF8N6JUp6qeUy8XOYfglWvrWK11OmjJYEYRDw/edit?tab=t.0)):
   - Teste funcional: [`docs/teste-funcional-venda.md`](docs/teste-funcional-venda.md)
   - Teste estrutural (todas-arestas) e de mutação: [`docs/teste-estrutural-mutacao-venda.md`](docs/teste-estrutural-mutacao-venda.md)
   - Testes de integração: [`docs/teste-integracao-venda.md`](docs/teste-integracao-venda.md)
