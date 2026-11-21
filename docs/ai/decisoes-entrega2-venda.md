@@ -785,3 +785,43 @@ de `VendaService` não precisa alterar o build.
 - **Alternativa apresentada:** não commitar agora.
 - **Decisão:** commitar.
 - **Efeito:** commit local; o push fica com o responsável.
+
+## 2026-11-21 — Ajuste das medidas ISO/IEC 25010 ao enunciado
+
+### D-39 — Escala e características que faltavam
+
+- **Contexto:** o responsável colou o enunciado. O item pede a "indicação das
+  medidas de cada atributo de qualidade da ISO 25010 seguindo uma escala" e a
+  justificativa das decisões. O documento tinha medidas de 6 das 8
+  características e usava ✅, ⚠️ e ❌ sem definir a escala.
+- **Opções apresentadas:** (1) versão completa: escala de 1 a 5, nota por
+  característica e as 2 características que faltavam; (2) versão menor:
+  definir a escala de 3 níveis já usada e acrescentar compatibilidade e
+  portabilidade com as evidências que já existem; (3) esperar o grupo, já
+  que o item pode ser do grupo e não de cada membro.
+- **Decisão:** opção 2, versão menor.
+- **Resultado:** em `docs/medidas-iso25010-venda.md`:
+  - seção "Escala de avaliação", que define os 3 níveis (✅ atende, ⚠️
+    atende parcialmente, ❌ não atende) e o critério de cada um, para uma
+    medida e para uma característica;
+  - tabela "Avaliação por característica", com o nível e a justificativa de
+    cada uma das 8 características. Aplicando o critério, a manutenibilidade
+    ficou ⚠️, e não "boa" como dizia a conclusão; a conclusão foi ajustada;
+  - medidas novas: M14 (interoperabilidade com o MySQL 8: a venda a prazo só
+    funciona com ajuste manual, Issue #10), M15 (coexistência, qualitativa),
+    M16 (instalabilidade: 1 comando com Docker) e M17 (adaptabilidade: preso
+    ao Java 8, e os testes Selenium exigem Java 11 ou mais novo);
+  - seções novas 7 (Compatibilidade) e 8 (Portabilidade), e uma limitação a
+    mais.
+- **Observação:** o Docker estava desligado, então o M14 se baseia no que
+  está documentado no CT-VENDA-01 e na Issue #10, sem nova consulta ao banco.
+- **Pendente para o responsável:** levar as partes novas para o Google Docs.
+
+### D-40 — Commit do ajuste da ISO 25010
+
+- **Proposta:** commitar o documento ISO e este registro na branch
+  `test/venda-service-entrega2`, em nome do responsável e sem coautoria da
+  IA, para entrar no PR #23.
+- **Alternativa apresentada:** revisar as alterações antes.
+- **Decisão:** commitar.
+- **Efeito:** commit local; o push fica com o responsável.

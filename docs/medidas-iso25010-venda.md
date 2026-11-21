@@ -19,7 +19,22 @@ Nenhum teste novo foi feito nesta etapa. Todos os valores vêm das Etapas 1
 a 7, já documentadas e commitadas. A meta de cada medida foi definida pelo
 grupo para este trabalho; não é um valor imposto pela norma.
 
-**Avaliação:** ✅ atende · ⚠️ atende parcialmente · ❌ não atende
+Foram consideradas as 8 características da ISO/IEC 25010:2011, a versão
+mais usada na literatura. A revisão de 2023 tem 9 características.
+
+### Escala de avaliação
+
+Cada medida e cada característica recebem um dos três níveis abaixo. A escala
+é ordinal: ✅ é melhor que ⚠️, e ⚠️ é melhor que ❌.
+
+| Nível | Significado | Critério para uma medida | Critério para uma característica |
+|---|---|---|---|
+| ✅ | Atende | O valor atinge a meta | Todas as medidas atendem |
+| ⚠️ | Atende parcialmente | O valor fica perto da meta (no limite, ou com falha isolada), ou a avaliação é só qualitativa ou parcial | Há medidas ⚠️, ou medidas ✅ e ❌ misturadas |
+| ❌ | Não atende | O valor fica longe da meta, ou há defeito de severidade alta ligado à medida | A maior parte das medidas é ❌ |
+
+Uma medida marcada como "informativo" não entra na nota da característica,
+porque não tem meta.
 
 ## Resumo
 
@@ -38,11 +53,28 @@ grupo para este trabalho; não é um valor imposto pela norma.
 | Manutenibilidade | Modularidade | M11. Dependências da classe | 11 | ≤ 7 | ❌ |
 | Usabilidade | Proteção contra erro do usuário | M12. Avaliação qualitativa | 2 problemas observados | — | ⚠️ |
 | Segurança | — | M13. Vulnerabilidades e pontos sensíveis no Sonar | 0 e 0 | 0 | ✅ (só análise estática) |
+| Compatibilidade | Interoperabilidade | M14. Fluxos de fechamento que funcionam no banco padrão do projeto | 1 de 2 (à vista sim; a prazo não, sem ajuste manual) | 2 de 2 | ❌ |
+| Compatibilidade | Coexistência | M15. Avaliação qualitativa | roda ao lado do banco e do SonarQube; só ficou lento com a memória quase cheia | — | ⚠️ |
+| Portabilidade | Instalabilidade | M16. Comandos para subir aplicação e banco do zero | 1 (`docker compose up -d`) | ≤ 3 | ✅ |
+| Portabilidade | Adaptabilidade | M17. Versões de Java com que o projeto compila e testa | só Java 8; os testes Selenium exigem Java 11 ou mais | uma versão de Java com suporte atual | ❌ |
+
+### Avaliação por característica
+
+| Característica | Medidas | Avaliação | Justificativa |
+|---|---|---|---|
+| Adequação funcional | M1 | ❌ | Só 56% dos casos dão o resultado do requisito |
+| Confiabilidade | M2 a M5 | ❌ | Desfaz tudo no banco quando falha (M4), mas tem 3 defeitos de severidade alta e esconde falhas na maior parte das gravações |
+| Eficiência de desempenho | M6 | ⚠️ | Tempo típico bem abaixo do limite, com uma violação isolada |
+| Manutenibilidade | M7 a M11 | ⚠️ | Testabilidade e inspeção excelentes; `fechaVenda` no limite de complexidade e classe com dependências demais |
+| Usabilidade | M12 | ⚠️ | Só avaliação qualitativa; botão indevido e mensagens técnicas |
+| Segurança | M13 | ✅ | Nada apontado pela análise estática; não houve teste de segurança desta classe |
+| Compatibilidade | M14 e M15 | ⚠️ | Funciona com o MySQL 8 só com ajuste manual no banco; convive bem com outros serviços |
+| Portabilidade | M16 e M17 | ⚠️ | Fácil de instalar com Docker, mas preso ao Java 8 |
 
 **Conclusão em uma frase:** `VendaService` agora está bem testado e fácil de
-analisar (manutenibilidade boa), mas faz contas erradas e esconde falhas
-(adequação funcional e confiabilidade ruins). O tempo de resposta atende,
-com uma falha isolada a investigar.
+analisar, mas faz contas erradas e esconde falhas (adequação funcional e
+confiabilidade ruins). O tempo de resposta atende, com uma falha isolada a
+investigar, e o projeto depende de um ajuste manual no banco e do Java 8.
 
 ---
 
@@ -231,7 +263,60 @@ As duas observações estão nas Issues [#21](https://github.com/annabchazan/tra
   aplicação (autenticação e permissões) foi testada pela Anna, em
   `NotaFiscalItemService`, e não faz parte desta avaliação.
 
-## 7. Situação final dos defeitos
+## 7. Compatibilidade
+
+Não houve teste dedicado a compatibilidade. As duas medidas usam o que
+apareceu nas outras etapas.
+
+### M14. Interoperabilidade — fluxos de fechamento que funcionam no banco padrão
+
+- **Fórmula:** X = formas de fechamento (à vista e a prazo) que funcionam no
+  banco definido no `docker-compose.yml` (MySQL 8.0, configuração padrão) sem
+  nenhum ajuste manual ÷ formas de fechamento.
+- **Valor:** **1 de 2.** O fechamento à vista funciona. O fechamento a prazo
+  falha com `Field 'data_alteracao' doesn't have a default value`, porque a
+  coluna `parcela.data_alteracao` não tem valor padrão e o MySQL 8 recusa o
+  insert (Issue #10, aberta pelo João Portela). Os testes de integração e de
+  sistema a prazo passaram porque o banco local já tinha o ajuste aplicado à
+  mão na Entrega 1 (ver `docs/testes-manuais/CT-VENDA-01.md`).
+- **Meta:** 2 de 2. **Avaliação:** ❌, porque o defeito impede a venda a
+  prazo numa instalação nova.
+
+### M15. Coexistência — avaliação qualitativa
+
+A aplicação, o banco e o SonarQube rodaram ao mesmo tempo, em containers
+separados, durante as Etapas 5 a 7, sem conflito de porta ou de recurso. O
+único efeito observado foi lentidão quando a memória da máquina chegou a 94%:
+o PIT precisou de um limite de tempo maior (D-28), e pode ter contribuído
+para a medição fora do limite no TS-VEN-07.
+
+**Avaliação:** ⚠️, porque a avaliação é só qualitativa.
+
+## 8. Portabilidade
+
+### M16. Instalabilidade — comandos para subir aplicação e banco do zero
+
+- **Fórmula:** número de comandos necessários, numa máquina com Docker, para
+  ter a aplicação e o banco funcionando.
+- **Valor:** **1** (`docker compose up -d`). O Flyway cria o esquema e os dados
+  iniciais na primeira subida.
+- **Meta:** ≤ 3. **Avaliação:** ✅. Sem Docker, o README pede criar o banco e
+  configurar o `application.properties` à mão.
+
+### M17. Adaptabilidade — versões de Java com que o projeto compila e testa
+
+- **Fórmula:** versões de Java com que o projeto compila e roda a suíte de
+  testes completa.
+- **Valor:** o projeto está configurado para Java 8 (`java.version` 1.8 no
+  `pom.xml`), e o README avisa que ele não funciona com JDKs recentes. Já os
+  testes de sistema usam o Selenium 4.13, que exige Java 11 ou mais novo. Por
+  isso, rodar tudo exige dois JDKs: Java 8 para a aplicação e os testes
+  unitários e de integração, e Java 17 para o Selenium. A análise do Sonar
+  ainda exige Java 21, num container separado.
+- **Meta:** uma versão de Java com suporte atual que compile e teste tudo.
+  **Avaliação:** ❌.
+
+## 9. Situação final dos defeitos
 
 Nenhum defeito foi corrigido na Entrega 2 (M3). Todos estão registrados em
 teste ou em caso manual. Cada um tem uma Issue no GitHub; alguns defeitos parecidos foram
@@ -263,7 +348,7 @@ As severidades da Entrega 1 vêm do
 [`plano-teste-venda.md`](plano-teste-venda.md). Os 9 defeitos achados na
 Entrega 2 foram classificados como de severidade média na abertura das Issues.
 
-## 8. Limitações
+## 10. Limitações
 
 - **Amostra pequena de desempenho:** 25 medições, numa máquina de
   desenvolvimento com a memória quase cheia (94% durante a Etapa 7). Não há
@@ -273,5 +358,8 @@ Entrega 2 foram classificados como de severidade média na abertura das Issues.
   complexidade ≤ 10), e não valores da norma.
 - **Usabilidade e segurança:** a usabilidade foi avaliada só de forma
   qualitativa, e a segurança só pela análise estática.
+- **Compatibilidade e portabilidade:** não houve teste dedicado. As medidas
+  M14 a M17 usam o que apareceu nas outras etapas e no README, e por isso são
+  menos profundas que as demais.
 - **Escopo:** as medidas valem para `VendaService` e a funcionalidade de
   venda, não para o sistema inteiro.
