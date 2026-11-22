@@ -6,6 +6,36 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
 
 ## Entradas
 
+### 2026-11-22 — Entrega 2 de CaixaService: testes unitários, funcional, estrutural, mutação e integração
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
+- **Membro responsável:** João Pedro G. Valadares
+- **Contexto/Prompt (resumo):** Fazer a parte de `CaixaService` da Entrega 2, ponto
+  a ponto: melhorar e aumentar os testes unitários isolando as dependências, projetar
+  os casos funcionais, chegar a 80% de todas-arestas e de mutação na mesma classe e
+  implementar os testes de integração. Um commit por etapa concluída, numa branch
+  própria, com PR no fim. O relatório e os prints ficam no documento da entrega.
+- **Resultado da IA (resumo):** projeto funcional com 9 entradas, 19 classes válidas,
+  11 inválidas e os valores-limite -0,01 / 0,00 / 0,01 (casos TF-CX-01 a 30);
+  `CaixaServiceTest` com 34 testes e `CaixaServiceIT` com 10. Foram apontados 6
+  defeitos (D-CX-01 a 06), 2 deles só visíveis na integração.
+- **Artefatos afetados:** `CaixaServiceTest.java`, `CaixaServiceIT.java`,
+  `docs/ai/snapshots/CaixaServiceTest.v1-ia.java`,
+  `docs/ai/snapshots/CaixaServiceIT.v1-ia.java`, `docs/ai/revisao-caixa-service.md`
+  e este registro.
+- **Decisão:** aceitos o projeto funcional e os testes. Quatro problemas da versão da
+  IA foram corrigidos (descritos em `docs/ai/revisao-caixa-service.md`): um erro de
+  compilação, a numeração dos casos, uma aresta sem teste e a exceção esperada em
+  TI-CX-10. Rejeitado matar os mutantes dos `println` testando o console. Os defeitos
+  foram registrados com o comportamento atual (padrão `DEFEITO` do grupo), sem
+  corrigir a classe nesta etapa.
+- **Validação realizada:** execução no container Java 8. `mvn clean test
+  -Dtest=CaixaServiceTest`: 34 testes, 0 falhas. JaCoCo: 43 de 44 arestas (a que
+  falta é não executável), 80 de 80 linhas. PIT: 52 de 54 mutantes mortos (96%), os 2
+  sobreviventes equivalentes. `mvn verify -Dit.test=CaixaServiceIT`: 10 testes, 0
+  falhas, banco limpo depois da execução. Suíte unitária completa do grupo executada
+  para conferir que o isolamento novo não quebrou outras classes.
+
 ### 2026-11-20 — Entrega 2 de VendaService: Etapas 1 a 8
 
 - **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
