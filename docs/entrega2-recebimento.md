@@ -294,8 +294,9 @@ apagada direto no MySQL.
 O **CT-REC-03**, que na Entrega 1 ficou "Não executado" porque a tela desabilita os
 campos, foi executado pelo TS-REC-03.
 
-**Desempenho (TS-REC-06):** duas execuções, 10 medições, entre **592 e 672 ms**
-(média de cerca de 620 ms), contra a meta de 2 s. Ressalva: medido numa máquina de
+**Desempenho (TS-REC-06):** quatro execuções, 20 medições, entre **592 e 726 ms**
+(média de cerca de 640 ms), contra a meta de 2 s. A execução mais lenta foi a da suíte
+completa do grupo, com os testes de sistema dos outros integrantes rodando antes. Ressalva: medido numa máquina de
 desenvolvimento, com um usuário e banco local; não é um teste de carga.
 
 **Resultado:** 7 casos, 6 passaram e 1 está ignorado pelo D9.
@@ -313,7 +314,7 @@ vem de uma evidência das seções anteriores.
 | Característica | Medida | Antes | Depois | Nota antes → depois |
 |---|---|---|---|---|
 | Adequação funcional | Casos unitários derivados da especificação que passam | 33/43 (77%) | 43/43 (100%) | 2 → 4 |
-| Eficiência de desempenho | Tempo do clique à confirmação do recebimento (meta 2 s) | — | 592 a 672 ms em 10 medições | — → 5 |
+| Eficiência de desempenho | Tempo do clique à confirmação do recebimento (meta 2 s) | — | 592 a 726 ms em 20 medições | — → 5 |
 | Compatibilidade | Integração com caixa, cartão e contas a receber verificada no banco | Inconsistente com a tela de contas a receber (D8) | 7/7 casos de integração | 2 → 3 |
 | Capacidade de interação | Entradas inválidas que geram mensagem compreensível | 9/14 (64%) | 14/14 (100%) | 3 → 4 |
 | Confiabilidade | Defeitos conhecidos na classe; reversão em falha | 6 abertos; reversão OK | 0 abertos; reversão OK (TI-REC-05) | 2 → 4 |
@@ -329,7 +330,7 @@ vem de uma evidência das seções anteriores.
   impedem que uma instalação nova do MySQL 8 feche vendas a prazo, que são as que
   geram as parcelas; sem parcelas não há o que receber. A medida antes caía para 2 por causa do D1: com o banco real, nenhum
   cliente a partir do código 128 conseguia receber.
-- **Eficiência de desempenho (5).** A maior das 10 medições (672 ms) fica com folga
+- **Eficiência de desempenho (5).** A maior das 20 medições (726 ms) fica com folga
   abaixo da meta de 2 s. A medida vale para uso de um operador por vez, que é o
   cenário de uma loja; não houve teste de carga.
 - **Compatibilidade (3).** O recebimento convive com o caixa (pelo gatilho do
