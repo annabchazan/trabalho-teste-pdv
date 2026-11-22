@@ -6,6 +6,34 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
 
 ## Entradas
 
+### 2026-11-22 — Entrega 2 de CaixaService: testes de sistema, correção do Sonar e medidas ISO/IEC 25010
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
+- **Membro responsável:** João Pedro G. Valadares
+- **Contexto/Prompt (resumo):** Continuar a parte de `CaixaService`: testes de
+  sistema com Selenium e um requisito não funcional, correção dos apontamentos do
+  Sonar (o responsável tira o print antes e depois), medidas ISO/IEC 25010 com escala
+  justificada e o estado final no documento da entrega.
+- **Resultado da IA (resumo):** `CaixaSistemaIT` com 8 casos (TS-CX-01 a 08), com
+  segurança como requisito não funcional, e um defeito novo (D-CX-07, senha de
+  fechamento na URL). Refatoração de `CaixaService` sem mudar o comportamento:
+  injeção pelo construtor, `Clock`, `CaixaException`, `EnumMap` e métodos menores
+  (complexidade do maior método de 15 para 5). 19 medidas ISO/IEC 25010 cobrindo as 8
+  características.
+- **Artefatos afetados:** `CaixaSistemaIT.java`, `CaixaService.java`,
+  `CaixaException.java`, `CaixaServiceTest.java` (construtor com `Clock` e datas
+  exatas), `docs/ai/revisao-caixa-service.md`, este registro e o README.
+- **Decisão:** aceitos os testes de sistema sem alteração (passaram na primeira
+  execução) e a refatoração. Mantido 1 apontamento do Sonar (java:S2143), porque
+  zerá-lo exigiria mudar a entidade `Caixa` e outras classes. Os defeitos D-CX-01 a 07
+  continuam registrados nos testes `DEFEITO`, sem correção.
+- **Validação realizada:** Selenium rodado no terminal do Windows com a aplicação no
+  ar: 8 testes, 0 falhas, banco limpo depois. Depois da refatoração, no container Java
+  8: 34 testes unitários (suíte do grupo: 137, 0 falhas), 10 de integração e 8 de
+  sistema passando; JaCoCo 28 de 28 arestas; PIT 49 de 49 mutantes. SonarQube for IDE,
+  rodado pelo responsável: de 21 para 1 apontamento. Tempo de resposta das listagens
+  medido com 100 requisições.
+
 ### 2026-11-22 — Entrega 2 de CaixaService: testes unitários, funcional, estrutural, mutação e integração
 
 - **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
