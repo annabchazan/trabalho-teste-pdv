@@ -825,3 +825,36 @@ de `VendaService` não precisa alterar o build.
 - **Alternativa apresentada:** revisar as alterações antes.
 - **Decisão:** commitar.
 - **Efeito:** commit local; o push fica com o responsável.
+
+## 2026-11-22 — Testes a prazo num banco recém-criado
+
+### D-41 — Como tratar os testes que dependem da Issue #10
+
+- **Contexto:** depois do merge do PR #23, o João Portela rodou a suíte da
+  `master` num banco recém-criado. Dois testes falharam:
+  `VendaServiceIT.fechaVenda_deveGerarParcelaComVencimentoEm30Dias_quandoAPrazo`
+  (TI-VEN-05) e `VendaSistemaIT.fecharAPrazoComCliente_deveFinalizarEGerarParcela`
+  (TS-VEN-03). A causa é o defeito D4 (Issue #10): no MySQL 8 do
+  `docker-compose`, a coluna `parcela.data_alteracao` é obrigatória e não tem
+  valor padrão, então o insert da parcela falha. No banco local do
+  responsável, a coluna tinha sido ajustada à mão na Entrega 1, por isso os
+  testes passavam. Ele também apontou uma frase do Google Docs que atribuía
+  ao grupo a decisão de não corrigir os defeitos.
+- **Opções apresentadas:** (A) o próprio teste confere se a coluna tem valor
+  padrão e, se não tiver, é pulado com uma mensagem que aponta a Issue #10
+  (`Assume` do JUnit); (B) `@Ignore` com a Issue #10, como sugeriu o João;
+  (C) corrigir o D4 com uma migração do Flyway, que dependeria do acordo do
+  grupo. Só registrar a pré-condição nos documentos foi descartado, porque
+  num banco limpo os testes continuariam falhando.
+- **Decisão:** opção A. A pré-condição também entra nos documentos de
+  integração e de sistema. A mudança vai numa branch nova
+  (`test/venda-a-prazo-sem-ajuste-d4`), a partir da `master`. A frase do
+  Google Docs fica com o responsável, que a troca com a própria conta.
+
+### D-42 — Commit do tratamento dos testes a prazo
+
+- **Proposta:** commitar os dois testes, os documentos de integração e de
+  sistema e este registro na branch `test/venda-a-prazo-sem-ajuste-d4`, em
+  nome do responsável e sem coautoria da IA.
+- **Decisão:** commitar.
+- **Efeito:** commit local, ainda não enviado ao remoto.

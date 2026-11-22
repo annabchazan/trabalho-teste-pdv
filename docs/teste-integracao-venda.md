@@ -48,6 +48,25 @@ no banco. Os testes de integração cobrem três pontos:
 - A classe de teste **não** usa `@Transactional`. Assim, a transação de
   `fechaVenda` é a real e pode ser confirmada ou desfeita.
 
+### Pré-condição: defeito D4 (Issue #10)
+
+Num banco recém-criado pelo `docker-compose`, a coluna
+`parcela.data_alteracao` é obrigatória e não tem valor padrão. Com isso, o
+MySQL 8 recusa o insert da parcela e todo fechamento a prazo falha. É o
+defeito D4, registrado na Issue #10. Ele não é de `VendaService`.
+
+O teste TI-VEN-05 (venda a prazo) confere a coluna antes de rodar. Se ela não tiver valor padrão,
+o teste aparece como **pulado**, com uma mensagem que aponta a Issue #10, em
+vez de falhar. Para que ele rode, aplique antes no banco:
+
+```sql
+alter table parcela modify data_alteracao timestamp not null default current_timestamp;
+```
+
+Os resultados registrados neste documento foram obtidos num banco com esse
+ajuste, aplicado à mão na Entrega 1 (ver `docs/testes-manuais/CT-VENDA-01.md`).
+Quando a Issue #10 for corrigida, o teste volta a rodar sozinho.
+
 ### Massa de dados
 
 | Dado | Código | Observação |
