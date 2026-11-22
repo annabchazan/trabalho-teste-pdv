@@ -2,7 +2,6 @@ package net.originmobi.pdv.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -12,7 +11,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Date;
-import java.time.LocalDate;
+import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -23,7 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -57,6 +58,10 @@ public class CaixaServiceTest {
 	private static final String USUARIO = "gerente";
 	private static final String SENHA = "123";
 
+	// relógio fixo: 22/11/2026 10:30 no horário de Brasília
+	private static final Clock RELOGIO = Clock.fixed(Instant.parse("2026-11-22T13:30:00Z"),
+			ZoneId.of("America/Sao_Paulo"));
+
 	@Mock
 	private CaixaRepository caixas;
 
@@ -66,7 +71,6 @@ public class CaixaServiceTest {
 	@Mock
 	private CaixaLancamentoService lancamentos;
 
-	@InjectMocks
 	private CaixaService service;
 
 	private Usuario usuario;
@@ -77,6 +81,9 @@ public class CaixaServiceTest {
 		// cria. Zerar o campo a cada teste evita que um teste dependa de outro.
 		ReflectionTestUtils.setField(Aplicacao.class, "aplicacao", null);
 		SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(USUARIO, SENHA));
+
+		// as dependências entram pelo construtor, incluindo o relógio
+		service = new CaixaService(caixas, usuarios, lancamentos, RELOGIO);
 
 		usuario = new Usuario();
 		usuario.setCodigo(1L);
@@ -212,16 +219,12 @@ public class CaixaServiceTest {
 		when(caixas.caixaAberto()).thenReturn(Optional.empty());
 		when(usuarios.buscaUsuario(USUARIO)).thenReturn(usuario);
 
-		LocalDate antes = LocalDate.now();
 		Long codigo = service.cadastro(caixa);
-		LocalDate depois = LocalDate.now();
 
 		assertEquals(Long.valueOf(7L), codigo);
 		assertEquals("Caixa da manhã", caixa.getDescricao());
 		assertSame(usuario, caixa.getUsuario());
-		assertNotNull(caixa.getData_cadastro());
-		LocalDate dataCadastro = new Date(caixa.getData_cadastro().getTime()).toLocalDate();
-		assertTrue(!dataCadastro.isBefore(antes) && !dataCadastro.isAfter(depois));
+		assertEquals(Date.valueOf("2026-11-22"), caixa.getData_cadastro());
 		verify(caixas).save(caixa);
 
 		CaixaLancamento lancamento = lancamentoGerado();
@@ -394,13 +397,10 @@ public class CaixaServiceTest {
 		when(usuarios.buscaUsuario(USUARIO)).thenReturn(usuario);
 		when(caixas.findById(1L)).thenReturn(Optional.of(caixa));
 
-		long antes = System.currentTimeMillis();
 		assertEquals("Caixa fechado com sucesso", service.fechaCaixa(1L, SENHA));
-		long depois = System.currentTimeMillis();
 
 		assertEquals(Double.valueOf(75.0), caixa.getValor_fechamento());
-		assertNotNull(caixa.getData_fechamento());
-		assertTrue(caixa.getData_fechamento().getTime() >= antes && caixa.getData_fechamento().getTime() <= depois);
+		assertEquals(Timestamp.valueOf("2026-11-22 10:30:00"), caixa.getData_fechamento());
 		verify(caixas).save(caixa);
 	}
 
@@ -408,7 +408,7 @@ public class CaixaServiceTest {
 	public void fechaCaixa_deveImpedirFechamento_quandoCaixaJaEstaFechado() {
 		// TF-CX-17
 		Caixa caixa = novoCaixa(CaixaTipo.CAIXA, 0.0, "Caixa diário");
-		caixa.setData_fechamento(new java.sql.Timestamp(System.currentTimeMillis()));
+		caixa.setData_fechamento(Timestamp.valueOf("2026-11-21 18:00:00"));
 		when(usuarios.buscaUsuario(USUARIO)).thenReturn(usuario);
 		when(caixas.findById(1L)).thenReturn(Optional.of(caixa));
 
