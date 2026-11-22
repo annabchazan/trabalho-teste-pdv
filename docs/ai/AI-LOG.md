@@ -6,6 +6,54 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
 
 ## Entradas
 
+### 2026-11-20 — Entrega 2 de VendaService: Etapas 1 a 8
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
+- **Membro responsável:** Felipe Martins Bittencourt
+- **Contexto/Prompt (resumo):** Execução das Etapas 1 a 8 da Entrega 2, uma
+  de cada vez. Para cada etapa, a IA propôs o escopo e só começou depois da
+  aprovação do responsável. As decisões tomadas no meio do caminho também
+  foram perguntadas e registradas, e os commits foram feitos em nome do
+  responsável, sem coautoria da IA.
+- **Artefatos afetados:** `VendaServiceTest.java` (53 testes),
+  `VendaServiceIT.java`, `VendaSistemaIT.java`, `VendaService.java` (injeção
+  pelo construtor e remoção de código morto, sem corrigir defeitos), os
+  documentos `docs/teste-funcional-venda.md`,
+  `docs/teste-estrutural-mutacao-venda.md`, `docs/teste-integracao-venda.md`,
+  `docs/teste-sistema-venda.md`, `docs/inspecao-sonar-venda.md` e
+  `docs/medidas-iso25010-venda.md`, as evidências em
+  `docs/evidencias/entrega2/` e o README.
+- **Decisão:** ver o registro detalhado em
+  [`decisoes-entrega2-venda.md`](decisoes-entrega2-venda.md) (D-06 a D-33).
+  Os pontos principais: os defeitos ficam registrados em testes de
+  caracterização, sem correção; o Caixa01 do banco local é fechado e
+  restaurado nos testes; a falha intermitente de desempenho é mantida e
+  registrada; e a IA gerou e revogou um token temporário do Sonar, com
+  autorização do responsável.
+- **Validação realizada:** cada etapa foi executada de verdade: JaCoCo, PIT,
+  testes de integração com MySQL, Selenium com a aplicação no ar e análise do
+  SonarQube. Os resultados e os ajustes feitos pela IA (por exemplo, o
+  relatório antigo misturado ao novo e o limite de tempo do PIT) estão
+  registrados nas decisões. Os documentos são rascunhos: o responsável passa o
+  texto para o Google Docs com a própria conta.
+
+### 2026-11-20 — Planejamento da Entrega 2 e preparação de VendaService
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
+- **Membro responsável:** Felipe Martins Bittencourt
+- **Contexto/Prompt (resumo):** Pedido de proposta de conteúdo para o Google
+  Docs e de divisão da Entrega 2 em etapas. Foi estabelecida a regra de que a
+  IA não executa nenhuma etapa sem aprovação, e de que toda decisão é
+  registrada.
+- **Artefatos afetados:** [`decisoes-entrega2-venda.md`](decisoes-entrega2-venda.md)
+  (registro detalhado das decisões D-01 a D-05) e este registro.
+- **Decisão:** ver o registro detalhado. Em resumo: plano em 9 etapas, manter
+  `VendaService`, trabalhar na branch `test/venda-service-entrega2` e medir a
+  linha de base antes de alterar os testes.
+- **Validação realizada:** a complexidade foi estimada por contagem de pontos
+  de decisão e será confirmada pelo Sonar. A configuração de build já existente
+  (JaCoCo, PIT, failsafe) foi conferida no `pom.xml`.
+
 ### 2026-09-21 - Ampliação dos testes e documentação de CaixaService
 
 - **Ferramenta:** Codex (OpenAI)
