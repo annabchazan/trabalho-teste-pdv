@@ -286,6 +286,46 @@ contra o código de produção. Oito cenários são testes de caracterização d
   `docker compose up -d` e os logs do container acompanhados durante a
   execução para capturar exceções não tratadas.
 
+### 2026-11-21 — Entrega 2 de RecebimentoService
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
+- **Membro responsável:** João Portela
+- **Contexto/Prompt (resumo):** pedido para ler o enunciado e o Plano de Teste e
+  fazer a parte do João na Entrega 2. A IA propôs um plano (aprovado pelo
+  responsável) e perguntou o que fazer com os defeitos D1, D2, D3 e D6, já que os
+  outros integrantes não corrigiram os seus. Resposta do responsável: "se a
+  entrega 2 pede para resolver, resolva". O plano proposto pela IA e aprovado
+  pelo responsável previa medir o estado inicial antes de qualquer mudança.
+- **Artefatos afetados:**
+  - `src/main/java/net/originmobi/pdv/service/RecebimentoService.java` (correções)
+  - `src/test/java/net/originmobi/pdv/service/RecebimentoServiceTest.java` (TU-REC-26 a 43)
+  - `src/test/java/net/originmobi/pdv/service/RecebimentoServiceIT.java` (TI-REC-01 a 07)
+  - `src/test/java/net/originmobi/pdv/service/RecebimentoSistemaIT.java` (TS-REC-01 a 07)
+  - `docs/entrega2-recebimento.md`, `docs/bugs/defeitos-recebimento.md`
+  - `docs/evidencias/entrega2/recebimento/` (prints de JaCoCo, PIT e Sonar)
+  - `docs/ai/snapshots/RecebimentoServiceTest.v2-ia.java` e `docs/ai/revisao-recebimento-service.md`
+- **Resultado da IA (resumo):** projeto funcional (classes de equivalência,
+  valores-limite e tabela de decisão), 18 casos unitários novos, correção de seis
+  defeitos da classe (dois deles novos, D7 e D8, encontrados pelo projeto
+  funcional), testes de integração com MySQL, testes de sistema com Selenium e um
+  terceiro defeito novo fora da classe (D9, de segurança), além das medidas da
+  ISO 25010.
+- **Decisão:** aceito, com as alterações descritas em
+  `docs/ai/revisao-recebimento-service.md`, seção 6. A IA propôs não corrigir D4,
+  D5 e D9, que estão fora da classe (esquema do banco e `SecurityConfig`); a
+  proposta constava do plano aprovado pelo responsável.
+- **Validação realizada:**
+  1. Estado inicial medido antes de mudar o código: 94,1% de arestas, 85% de
+     escore de mutação e 10 problemas no Sonar.
+  2. A suíte nova foi executada contra o código antigo e falhou exatamente nos
+     casos dos defeitos (10 falhas); contra o código corrigido, 43 de 43.
+  3. Os testes de integração foram executados contra o código antigo e falharam
+     todos pelo D1 (cliente 9201), o que mostrou que o D1 bloqueia o módulo no
+     banco real.
+  4. O TS-REC-07 foi executado sem o `@Ignore` para confirmar a falha pelo D9.
+  5. Medição final: 100% de arestas (48/48), 100% de escore de mutação (44/44),
+     0 problemas no Sonar; suíte do grupo com 111 testes e 0 falhas.
+
 <!--
 Modelo de entrada para novos registros:
 

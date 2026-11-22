@@ -2,6 +2,8 @@ package net.originmobi.pdv.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
@@ -22,7 +24,6 @@ import java.util.Optional;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -31,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import net.originmobi.pdv.controller.TituloService;
 import net.originmobi.pdv.enumerado.TituloTipo;
@@ -175,7 +177,6 @@ public class RecebimentoServiceTest {
 
 	// TU-REC-25 - defeito D6
 	@Test
-	@Ignore("Defeito D6 - RecebimentoService:67 faz Long.decode em elemento vazio; ver docs/bugs/defeitos-recebimento.md")
 	public void abrirRecebimento_deveLancarMensagemAmigavel_quandoNenhumaParcelaFoiSelecionada() {
 		// ReceberController:97 faz request.get("parcelas").split(" "); com o
 		// parametro vazio isso devolve [""] - um array com UM elemento vazio, e nao
@@ -194,7 +195,6 @@ public class RecebimentoServiceTest {
 
 	// TU-REC-06 - defeito D1
 	@Test
-	@Ignore("Defeito D1 (Issue #4) - RecebimentoService:72 compara Long com != ; ver docs/bugs/defeitos-recebimento.md")
 	public void abrirRecebimento_deveAceitarParcela_quandoClienteTemCodigoAcimaDoCacheDeLong() {
 		// Long.valueOf() so reaproveita instancias de -128 a 127; acima disso cada
 		// chamada devolve um objeto novo e a comparacao por referencia (!=) falha
@@ -382,6 +382,8 @@ public class RecebimentoServiceTest {
 		when(titulos.busca(COD_TITULO)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
 		when(receParcelas.parcelasDoReceber(COD_RECEBIMENTO))
 				.thenReturn(Arrays.asList(parcela(10L, COD_PESSOA, 100.0, 0)));
+		// Entrega 2: o caixa passou a ser validado antes de quitar as parcelas (D7)
+		when(caixas.caixaAberto()).thenReturn(Optional.of(new Caixa()));
 		doThrow(new RuntimeException("erro de conexão")).when(parcelas).receber(anyLong(), anyDouble(), anyDouble(),
 				anyDouble());
 
@@ -435,7 +437,6 @@ public class RecebimentoServiceTest {
 
 	// TU-REC-19 - defeito D2
 	@Test
-	@Ignore("Defeito D2 (Issue #5) - RecebimentoService:108 faz unboxing antes de testar null ; ver docs/bugs/defeitos-recebimento.md")
 	public void receber_deveLancarMensagemAmigavel_quandoCodigoDoTituloENulo() {
 		try {
 			service.receber(COD_RECEBIMENTO, 100.0, 0.0, 0.0, null);
@@ -451,7 +452,6 @@ public class RecebimentoServiceTest {
 
 	// TU-REC-20 - defeito D3
 	@Test
-	@Ignore("Defeito D3 (Issue #6) - RecebimentoService:115 consome Optional vazio com get() ; ver docs/bugs/defeitos-recebimento.md")
 	public void receber_deveLancarMensagemAmigavel_quandoTituloNaoExiste() {
 		when(recebimentos.findById(COD_RECEBIMENTO)).thenReturn(Optional.of(recebimentoEmAberto(100.0)));
 		when(titulos.busca(COD_TITULO)).thenReturn(Optional.empty());
@@ -510,8 +510,305 @@ public class RecebimentoServiceTest {
 	}
 
 	// ---------------------------------------------------------------
+	// Entrega 2 - casos derivados do projeto funcional
+	// (docs/entrega2-recebimento.md, secao 1)
+	// ---------------------------------------------------------------
+
+	// TU-REC-26 - valor limite do codigo do cliente: 127, ultimo valor do cache de Long
+	@Test
+	public void abrirRecebimento_deveAceitarParcela_quandoCodigoDoClienteE127() {
+		Long codPessoa = Long.valueOf(127L);
+		when(parcelas.busca(10L)).thenReturn(parcela(10L, Long.valueOf(127L), 100.0, 0));
+		when(pessoas.buscaPessoa(codPessoa)).thenReturn(Optional.of(pessoa(codPessoa)));
+		simulaGeracaoDeCodigoNoSave(77L);
+
+		assertEquals("77", service.abrirRecebimento(codPessoa, new String[] { "10" }));
+	}
+
+	// TU-REC-27 - valor limite do codigo do cliente: 128, primeiro valor fora do cache (D1)
+	@Test
+	public void abrirRecebimento_deveAceitarParcela_quandoCodigoDoClienteE128() {
+		// new Long garante objetos distintos, como acontece quando o codigo vem do
+		// request e o da parcela vem do banco
+		Long codPessoaArgumento = new Long(128L);
+		Long codPessoaEntidade = new Long(128L);
+		when(parcelas.busca(10L)).thenReturn(parcela(10L, codPessoaEntidade, 100.0, 0));
+		when(pessoas.buscaPessoa(codPessoaArgumento)).thenReturn(Optional.of(pessoa(codPessoaEntidade)));
+		simulaGeracaoDeCodigoNoSave(77L);
+
+		assertEquals("77", service.abrirRecebimento(codPessoaArgumento, new String[] { "10" }));
+	}
+
+	// TU-REC-28 - valor limite da quantidade de parcelas: 0 (lista vazia)
+	@Test
+	public void abrirRecebimento_deveLancarMensagemAmigavel_quandoListaDeParcelasEVazia() {
+		try {
+			service.abrirRecebimento(COD_PESSOA, new String[0]);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertEquals("Selecione ao menos uma parcela para receber", e.getMessage());
+		}
+
+		verify(recebimentos, never()).save(any(Recebimento.class));
+	}
+
+	// TU-REC-43 - lista de parcelas nula (chamada direta ao servico, sem o controller)
+	@Test
+	public void abrirRecebimento_deveLancarMensagemAmigavel_quandoListaDeParcelasENula() {
+		try {
+			service.abrirRecebimento(COD_PESSOA, null);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertEquals("Selecione ao menos uma parcela para receber", e.getMessage());
+		}
+	}
+
+	// TU-REC-29 - valor limite da quantidade de parcelas: 1
+	@Test
+	public void abrirRecebimento_deveCriarRecebimentoDoClienteComAParcela_quandoUmaParcela() {
+		Parcela parcela = parcela(10L, COD_PESSOA, 35.5, 0);
+		Pessoa cliente = pessoa(COD_PESSOA);
+		when(parcelas.busca(10L)).thenReturn(parcela);
+		when(pessoas.buscaPessoa(COD_PESSOA)).thenReturn(Optional.of(cliente));
+		simulaGeracaoDeCodigoNoSave(77L);
+
+		long antes = System.currentTimeMillis();
+		service.abrirRecebimento(COD_PESSOA, new String[] { "10" });
+		long depois = System.currentTimeMillis();
+
+		ArgumentCaptor<Recebimento> salvo = ArgumentCaptor.forClass(Recebimento.class);
+		verify(recebimentos).save(salvo.capture());
+		assertEquals(35.5, salvo.getValue().getValor_total(), DELTA);
+		assertSame(cliente, salvo.getValue().getPessoa());
+		assertEquals(Arrays.asList(parcela), salvo.getValue().getParcela());
+		assertDentroDaJanela(salvo.getValue().getData_cadastro(), antes, depois);
+	}
+
+	// TU-REC-30 - valor limite da quantidade de parcelas: 3
+	@Test
+	public void abrirRecebimento_deveSomarAsTresParcelasNaOrdem_quandoTresParcelas() {
+		when(parcelas.busca(10L)).thenReturn(parcela(10L, COD_PESSOA, 10.0, 0));
+		when(parcelas.busca(11L)).thenReturn(parcela(11L, COD_PESSOA, 20.25, 0));
+		when(parcelas.busca(12L)).thenReturn(parcela(12L, COD_PESSOA, 30.5, 0));
+		when(pessoas.buscaPessoa(COD_PESSOA)).thenReturn(Optional.of(pessoa(COD_PESSOA)));
+		simulaGeracaoDeCodigoNoSave(77L);
+
+		service.abrirRecebimento(COD_PESSOA, new String[] { "10", "11", "12" });
+
+		ArgumentCaptor<Recebimento> salvo = ArgumentCaptor.forClass(Recebimento.class);
+		verify(recebimentos).save(salvo.capture());
+		assertEquals(60.75, salvo.getValue().getValor_total(), DELTA);
+		assertEquals(Arrays.asList(10L, 11L, 12L), codigos(salvo.getValue().getParcela()));
+	}
+
+	// TU-REC-31 - valor limite do valor recebido: 0,01 (menor valor valido)
+	@Test
+	public void receber_deveAceitarUmCentavo_quandoValorRecebidoE001() {
+		preparaRecebimentoEmDinheiro(100.0, parcela(10L, COD_PESSOA, 100.0, 0));
+
+		assertEquals("Recebimento realizado com sucesso", service.receber(COD_RECEBIMENTO, 0.01, 0.0, 0.0, COD_TITULO));
+
+		verify(parcelas).receber(10L, 0.01, 0.00, 0.00);
+		verify(lancamentos).lancamento(argThat(lancamento -> lancamento.getValor().equals(0.01)));
+	}
+
+	// TU-REC-32 - valor limite do valor recebido: -0,01
+	@Test
+	public void receber_deveLancarExcecao_quandoValorRecebidoENegativo() {
+		preparaRecebimentoEmDinheiro(100.0, parcela(10L, COD_PESSOA, 100.0, 0));
+
+		try {
+			service.receber(COD_RECEBIMENTO, -0.01, 0.0, 0.0, COD_TITULO);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertEquals("Valor de recebimento inválido", e.getMessage());
+		}
+
+		verify(parcelas, never()).receber(anyLong(), anyDouble(), anyDouble(), anyDouble());
+	}
+
+	// TU-REC-33 - valor limite do valor recebido: total + 0,01
+	@Test
+	public void receber_deveLancarExcecao_quandoValorRecebidoUltrapassaOTotalEmUmCentavo() {
+		preparaRecebimentoEmDinheiro(100.0, parcela(10L, COD_PESSOA, 100.0, 0));
+
+		try {
+			service.receber(COD_RECEBIMENTO, 100.01, 0.0, 0.0, COD_TITULO);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertEquals("Valor de recebimento é superior aos títulos", e.getMessage());
+		}
+
+		verify(parcelas, never()).receber(anyLong(), anyDouble(), anyDouble(), anyDouble());
+	}
+
+	// TU-REC-34 - valor limite do valor recebido: total - 0,01 (recebimento parcial)
+	@Test
+	public void receber_deveQuitarParcialmente_quandoValorRecebidoEUmCentavoMenorQueOTotal() {
+		preparaRecebimentoEmDinheiro(100.0, parcela(10L, COD_PESSOA, 100.0, 0));
+
+		service.receber(COD_RECEBIMENTO, 99.99, 0.0, 0.0, COD_TITULO);
+
+		verify(parcelas).receber(10L, 99.99, 0.00, 0.00);
+		verify(lancamentos).lancamento(argThat(lancamento -> lancamento.getValor().equals(99.99)));
+	}
+
+	// TU-REC-35 - rateio: valor um centavo acima da primeira parcela
+	@Test
+	public void receber_deveLevarUmCentavoParaASegundaParcela_quandoValorPassaDaPrimeiraEmUmCentavo() {
+		preparaRecebimentoEmDinheiro(200.0, parcela(10L, COD_PESSOA, 100.0, 0), parcela(11L, COD_PESSOA, 100.0, 0));
+
+		service.receber(COD_RECEBIMENTO, 100.01, 0.0, 0.0, COD_TITULO);
+
+		ArgumentCaptor<Double> valorQuitado = ArgumentCaptor.forClass(Double.class);
+		verify(parcelas, times(2)).receber(anyLong(), valorQuitado.capture(), eq(0.00), eq(0.00));
+		assertEquals(100.0, valorQuitado.getAllValues().get(0), DELTA);
+		assertEquals(0.01, valorQuitado.getAllValues().get(1), DELTA);
+	}
+
+	// TU-REC-36 - o total do recebimento e comparado com duas casas decimais
+	@Test
+	public void receber_deveAceitarOTotalArredondado_quandoTotalTemMaisDeDuasCasas() {
+		preparaRecebimentoEmDinheiro(33.333, parcela(10L, COD_PESSOA, 33.333, 0));
+
+		assertEquals("Recebimento realizado com sucesso", service.receber(COD_RECEBIMENTO, 33.33, 0.0, 0.0, COD_TITULO));
+	}
+
+	// TU-REC-37 - um centavo acima do total arredondado e recusado
+	@Test
+	public void receber_deveLancarExcecao_quandoValorPassaDoTotalArredondado() {
+		preparaRecebimentoEmDinheiro(33.333, parcela(10L, COD_PESSOA, 33.333, 0));
+
+		try {
+			service.receber(COD_RECEBIMENTO, 33.34, 0.0, 0.0, COD_TITULO);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertEquals("Valor de recebimento é superior aos títulos", e.getMessage());
+		}
+	}
+
+	// TU-REC-38 - vinculos gravados: titulo no recebimento; caixa, usuario e
+	// recebimento no lancamento
+	@Test
+	public void receber_deveVincularTituloELancamentoAoRecebimento_quandoTituloEmDinheiro() {
+		Recebimento recebimento = recebimentoEmAberto(100.0);
+		Titulo titulo = titulo(TituloTipo.DIN);
+		Caixa caixa = new Caixa();
+		Usuario usuario = usuario();
+		when(recebimentos.findById(COD_RECEBIMENTO)).thenReturn(Optional.of(recebimento));
+		when(titulos.busca(COD_TITULO)).thenReturn(Optional.of(titulo));
+		when(receParcelas.parcelasDoReceber(COD_RECEBIMENTO))
+				.thenReturn(Arrays.asList(parcela(10L, COD_PESSOA, 100.0, 0)));
+		when(usuarios.buscaUsuario(USUARIO_LOGADO)).thenReturn(usuario);
+		when(caixas.caixaAberto()).thenReturn(Optional.of(caixa));
+
+		service.receber(COD_RECEBIMENTO, 100.0, 0.0, 0.0, COD_TITULO);
+
+		assertSame(titulo, recebimento.getTitulo());
+
+		ArgumentCaptor<CaixaLancamento> lancamento = ArgumentCaptor.forClass(CaixaLancamento.class);
+		verify(lancamentos).lancamento(lancamento.capture());
+		assertEquals("Referente ao recebimento " + COD_RECEBIMENTO, lancamento.getValue().getObservacao());
+		assertSame(caixa, lancamento.getValue().getCaixa().get());
+		assertSame(usuario, lancamento.getValue().getUsuario());
+		assertSame(recebimento, ReflectionTestUtils.getField(lancamento.getValue(), "recebimento"));
+	}
+
+	// TU-REC-39 - isolamento do relogio: a data de processamento e a do momento
+	// do recebimento, e nao uma data qualquer
+	@Test
+	public void receber_deveGravarDataDeProcessamentoDoMomentoDoRecebimento() {
+		Recebimento recebimento = preparaRecebimentoEmDinheiro(100.0, parcela(10L, COD_PESSOA, 100.0, 0));
+
+		long antes = System.currentTimeMillis();
+		service.receber(COD_RECEBIMENTO, 100.0, 0.0, 0.0, COD_TITULO);
+		long depois = System.currentTimeMillis();
+
+		assertDentroDaJanela(recebimento.getData_processamento(), antes, depois);
+	}
+
+	// TU-REC-40 - recebimento inexistente (D3, variante do recebimento)
+	@Test
+	public void receber_deveLancarMensagemAmigavel_quandoRecebimentoNaoExiste() {
+		when(recebimentos.findById(COD_RECEBIMENTO)).thenReturn(Optional.empty());
+
+		try {
+			service.receber(COD_RECEBIMENTO, 100.0, 0.0, 0.0, COD_TITULO);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertEquals("Recebimento não encontrado, favor verifique", e.getMessage());
+		}
+	}
+
+	// TU-REC-41 - tabela de decisao, regra R7: dinheiro sem caixa aberto
+	@Test
+	public void receber_deveLancarMensagemAmigavel_quandoTituloEmDinheiroENaoHaCaixaAberto() {
+		Recebimento recebimento = recebimentoEmAberto(100.0);
+		when(recebimentos.findById(COD_RECEBIMENTO)).thenReturn(Optional.of(recebimento));
+		when(titulos.busca(COD_TITULO)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
+		when(receParcelas.parcelasDoReceber(COD_RECEBIMENTO))
+				.thenReturn(Arrays.asList(parcela(10L, COD_PESSOA, 100.0, 0)));
+		when(caixas.caixaAberto()).thenReturn(Optional.empty());
+
+		try {
+			service.receber(COD_RECEBIMENTO, 100.0, 0.0, 0.0, COD_TITULO);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertEquals("Nenhum caixa aberto, abra o caixa para receber em dinheiro", e.getMessage());
+		}
+
+		// a validacao acontece antes de quitar qualquer parcela
+		verify(parcelas, never()).receber(anyLong(), anyDouble(), anyDouble(), anyDouble());
+		verify(lancamentos, never()).lancamento(any(CaixaLancamento.class));
+		verify(recebimentos, never()).save(any(Recebimento.class));
+	}
+
+	// TU-REC-42 - parcelas pagas por fora depois de abrir o recebimento: o que
+	// falta pagar nelas e menor que o total gravado no recebimento
+	@Test
+	public void receber_deveRecusarValorAcimaDoQueFaltaNasParcelas_quandoParcelaFoiPagaDepoisDeAbrirORecebimento() {
+		// recebimento aberto com R$ 100,00; a parcela recebeu R$ 60,00 pela tela de
+		// contas a receber e hoje so faltam R$ 40,00
+		preparaRecebimentoEmDinheiro(100.0, parcela(10L, COD_PESSOA, 40.0, 0));
+
+		try {
+			service.receber(COD_RECEBIMENTO, 100.0, 0.0, 0.0, COD_TITULO);
+			fail("Deveria ter lançado RuntimeException");
+		} catch (RuntimeException e) {
+			assertEquals("Valor de recebimento é superior aos títulos", e.getMessage());
+		}
+
+		verify(parcelas, never()).receber(anyLong(), anyDouble(), anyDouble(), anyDouble());
+		verify(lancamentos, never()).lancamento(any(CaixaLancamento.class));
+	}
+
+	// ---------------------------------------------------------------
 	// fixtures
 	// ---------------------------------------------------------------
+
+	private static final double DELTA = 0.0001;
+
+	private Recebimento preparaRecebimentoEmDinheiro(Double total, Parcela... parcelasDoRecebimento) {
+		Recebimento recebimento = recebimentoEmAberto(total);
+		when(recebimentos.findById(COD_RECEBIMENTO)).thenReturn(Optional.of(recebimento));
+		when(titulos.busca(COD_TITULO)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
+		when(receParcelas.parcelasDoReceber(COD_RECEBIMENTO)).thenReturn(Arrays.asList(parcelasDoRecebimento));
+		when(usuarios.buscaUsuario(USUARIO_LOGADO)).thenReturn(usuario());
+		when(caixas.caixaAberto()).thenReturn(Optional.of(new Caixa()));
+		return recebimento;
+	}
+
+	private static void assertDentroDaJanela(Timestamp data, long antes, long depois) {
+		assertTrue("data " + data + " fora da janela da execução",
+				data != null && data.getTime() >= antes && data.getTime() <= depois);
+	}
+
+	private static java.util.List<Long> codigos(java.util.List<Parcela> lista) {
+		java.util.List<Long> codigos = new ArrayList<>();
+		for (Parcela parcela : lista)
+			codigos.add(parcela.getCodigo());
+		return codigos;
+	}
 
 	private void simulaGeracaoDeCodigoNoSave(Long codigoGerado) {
 		// o servico devolve recebimento.getCodigo().toString(); com o repositorio
