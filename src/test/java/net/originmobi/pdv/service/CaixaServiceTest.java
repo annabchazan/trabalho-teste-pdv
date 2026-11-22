@@ -495,6 +495,18 @@ public class CaixaServiceTest {
 		verify(caixas, never()).buscaCaixaTipoData(any(), any());
 	}
 
+	@Test
+	public void listaBancosAbertosTipoFilterBanco_deveListarBancosAbertos_quandoFiltroTemDataNula() {
+		// TE-CX-01: aresta falsa de "data != null" (linha 195), que o projeto
+		// funcional não exercitou
+		BancoFilter filter = new BancoFilter();
+		List<Caixa> resultado = Collections.singletonList(new Caixa());
+		when(caixas.buscaCaixaTipo(CaixaTipo.BANCO)).thenReturn(resultado);
+
+		assertSame(resultado, service.listaBancosAbertosTipoFilterBanco(CaixaTipo.BANCO, filter));
+		verify(caixas, never()).buscaCaixaTipoData(any(), any());
+	}
+
 	// consultas que repassam ao repositório
 
 	@Test
