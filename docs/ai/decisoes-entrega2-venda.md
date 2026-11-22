@@ -858,3 +858,28 @@ de `VendaService` não precisa alterar o build.
   nome do responsável e sem coautoria da IA.
 - **Decisão:** commitar.
 - **Efeito:** commit local, ainda não enviado ao remoto.
+
+### D-43 — Execução dos testes a prazo com e sem o ajuste do D4
+
+- **Contexto:** a pedido do responsável, os testes foram rodados antes do
+  push. O commit `3d85ae3` tinha sido feito antes dessa execução, porque o
+  Docker não subia.
+- **Docker:** o Docker Desktop travava ao iniciar porque não conseguia apagar
+  sockets antigos (`Docker\run\dockerInference` e
+  `docker-secrets-engine\engine.sock`); o Windows também recusava a exclusão
+  (erro 1920). Com autorização do responsável, a IA fechou o Docker e
+  renomeou essas pastas para `.old` e `.old2`, sem apagar nada. O Docker
+  então subiu.
+- **Execução:**
+
+  | Banco | `VendaServiceIT` | `VendaSistemaIT` |
+  |---|---|---|
+  | Sem o ajuste (coluna como no `V1`, sem valor padrão) | 9 testes, 8 passaram, 1 pulado (TI-VEN-05) | 7 testes, 5 passaram, 2 pulados (TS-VEN-03 e TS-VEN-06) |
+  | Com o ajuste | 9 de 9 passaram | 6 passaram, 1 pulado (TS-VEN-06); TS-VEN-07: 557, 593, 576, 616 e 560 ms |
+
+  Nos casos pulados por falta do ajuste, o relatório mostra a mensagem que
+  aponta a Issue #10.
+- **Banco local:** a coluna foi deixada sem valor padrão só durante a
+  primeira execução e depois voltou a
+  `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`. O Caixa01 está
+  como antes e não sobraram dados dos testes.
