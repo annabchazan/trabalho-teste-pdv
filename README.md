@@ -96,6 +96,7 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 - Casos manuais CT-CX-01/02, automatizados em TS-CX-01 e TS-CX-04: [`docs/testes-manuais/CT-CAIXA-01.md`](docs/testes-manuais/CT-CAIXA-01.md)
 - Correção dos apontamentos do Sonar, sem mudar o comportamento: [`CaixaService.java`](src/main/java/net/originmobi/pdv/service/CaixaService.java) e [`CaixaException.java`](src/main/java/net/originmobi/pdv/service/CaixaException.java)
 - Resultados: 100% de arestas (28/28) e de mutação (49/49); Sonar de 21 apontamentos para 1 (informativo, justificado); 7 defeitos registrados (D-CX-01..07), nenhum corrigido por decisão
+- Defeitos encontrados (7, agrupados em 5 Issues): senha na URL (D-CX-07) [#29](../../issues/29); filtro por data sem resultado (D-CX-05) [#30](../../issues/30); data dd/mm/aaaa com erro 500 (D-CX-04) [#31](../../issues/31); erro técnico com dado ausente ou caixa inexistente (D-CX-01..03) [#32](../../issues/32); `listaBancos` com erro de SQL (D-CX-06) [#33](../../issues/33)
 - Relatório da Entrega 2 (projeto funcional, estrutural, mutação, integração, sistema, Sonar, ISO/IEC 25010, uso de IA e prints): [link a preencher após a migração para o Google Docs]
 - Solução inicial gerada com IA, preservada: [`docs/ai/snapshots/CaixaServiceTest.v1-ia.java`](docs/ai/snapshots/CaixaServiceTest.v1-ia.java) e [`docs/ai/snapshots/CaixaServiceIT.v1-ia.java`](docs/ai/snapshots/CaixaServiceIT.v1-ia.java)
 - Revisão da solução gerada com IA (versão inicial, final e alterações): [`docs/ai/revisao-caixa-service.md`](docs/ai/revisao-caixa-service.md)
