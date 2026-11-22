@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.doubleThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -17,8 +18,10 @@ import static org.mockito.Mockito.when;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.junit.After;
@@ -35,6 +38,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import net.originmobi.pdv.controller.TituloService;
 import net.originmobi.pdv.enumerado.EntradaSaida;
@@ -52,6 +56,7 @@ import net.originmobi.pdv.model.Usuario;
 import net.originmobi.pdv.model.Venda;
 import net.originmobi.pdv.repository.VendaRepository;
 import net.originmobi.pdv.service.cartao.CartaoLancamentoService;
+import net.originmobi.pdv.singleton.Aplicacao;
 
 /**
  * Testes unitarios de VendaService - classe de alta complexidade do modulo de
@@ -63,6 +68,11 @@ import net.originmobi.pdv.service.cartao.CartaoLancamentoService;
  * caracterizam defeitos ja presentes no codigo de producao - esses testes estao
  * marcados com "DEFEITO" e asseguram o comportamento REAL de hoje, servindo de
  * rede de protecao para a correcao na Entrega 2.
+ *
+ * Entrega 2 (Etapa 1): o singleton Aplicacao passa a ser zerado a cada teste,
+ * os vencimentos das parcelas passam a ser conferidos em relacao a data de hoje
+ * e foram incluidos os cenarios T-1 a T-9 (ver
+ * docs/ai/decisoes-entrega2-venda.md, D-10).
  */
 @RunWith(MockitoJUnitRunner.class)
 public class VendaServiceTest {
@@ -113,6 +123,11 @@ public class VendaServiceTest {
 
 	@Before
 	public void setUp() {
+		// Isolamento (Entrega 2, I-1): Aplicacao e um singleton que guarda em campo
+		// estatico o usuario lido na primeira chamada. Sem zera-lo, o resultado
+		// dependeria da ordem dos testes e de outras classes de teste da execucao.
+		ReflectionTestUtils.setField(Aplicacao.class, "aplicacao", null);
+
 		// VendaService usa o singleton Aplicacao, que le o usuario autenticado
 		// direto do SecurityContextHolder - sem isso o teste estoura NPE.
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -129,6 +144,7 @@ public class VendaServiceTest {
 	@After
 	public void tearDown() {
 		SecurityContextHolder.clearContext();
+		ReflectionTestUtils.setField(Aplicacao.class, "aplicacao", null);
 	}
 
 	// abreVenda()
@@ -177,6 +193,20 @@ public class VendaServiceTest {
 		when(vendas.save(any(Venda.class))).thenThrow(new RuntimeException("falha de conexao"));
 
 		assertNull(service.abreVenda(new Venda()));
+	}
+
+	@Test
+	public void abreVenda_deveEngolirExcecao_quandoRepositorioFalhaAoAtualizarVendaExistente() {
+		// T-1 / DEFEITO: a falha do update tambem e silenciada; o chamador recebe o
+		// codigo da venda como se os dados (cliente, observacao) tivessem sido salvos.
+		Venda venda = new Venda();
+		venda.setCodigo(COD_VENDA);
+		venda.setPessoa(cliente);
+		venda.setObservacao("troca de cliente");
+		doThrow(new RuntimeException("falha de conexao")).when(vendas).updateDadosVenda(any(), any(), any());
+
+		assertEquals(COD_VENDA, service.abreVenda(venda));
+		verify(vendas, never()).save(any(Venda.class));
 	}
 
 	// busca()
@@ -307,6 +337,7 @@ public class VendaServiceTest {
 
 	@Test
 	public void fechaVenda_deveLancarExcecao_quandoValorDeProdutosNaoEPositivo() {
+		// Teste funcional: limite E2 na fronteira (0,00) - docs/teste-funcional-venda.md
 		when(vendas.findByCodigoEquals(COD_VENDA)).thenReturn(vendaAberta(null));
 
 		esperaErro("Venda sem valor, verifique", 0.0, 0.0, 0.0, new String[] { "0.00" }, new String[] { "1" });
@@ -316,6 +347,7 @@ public class VendaServiceTest {
 
 	@Test
 	public void fechaVenda_deveLancarExcecao_quandoAVistaEmDinheiroSemCaixaAberto() {
+		// Teste funcional: R2 (a vista, dinheiro, caixa fechado) - docs/teste-funcional-venda.md
 		preparaFechamento("00", null);
 		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
 		when(caixas.caixaIsAberto()).thenReturn(false);
@@ -328,6 +360,7 @@ public class VendaServiceTest {
 
 	@Test
 	public void fechaVenda_deveLancarExcecao_quandoVendaAPrazoSemCliente() {
+		// Teste funcional: R7 (a prazo, sem cliente) - docs/teste-funcional-venda.md
 		preparaFechamento("30", null);
 		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
 
@@ -359,6 +392,7 @@ public class VendaServiceTest {
 
 	@Test
 	public void fechaVenda_deveLancarNoCaixaEFecharVenda_quandoAVistaEmDinheiro() {
+		// Teste funcional: R1 (a vista, dinheiro, caixa aberto) e limite E6 na fronteira (100,00) - docs/teste-funcional-venda.md
 		PagamentoTipo formaPagamento = preparaFechamento("00", null);
 		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
 		when(caixas.caixaIsAberto()).thenReturn(true);
@@ -386,6 +420,7 @@ public class VendaServiceTest {
 
 	@Test
 	public void fechaVenda_deveLancarNoCartao_quandoAVistaComCartaoDeCredito() {
+		// Teste funcional: R4 (a vista, cartao de credito) - docs/teste-funcional-venda.md
 		preparaFechamento("00", null);
 		Optional<Titulo> tituloCartao = Optional.of(titulo(TituloTipo.CARTCRED));
 		when(tituloService.busca(1L)).thenReturn(tituloCartao);
@@ -403,6 +438,7 @@ public class VendaServiceTest {
 
 	@Test
 	public void fechaVenda_deveGerarUmaParcelaPorPrazo_quandoVendaAPrazo() {
+		// Teste funcional: R6 (a prazo, com cliente) - docs/teste-funcional-venda.md
 		preparaFechamento("30/60", cliente);
 		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
 
@@ -411,10 +447,12 @@ public class VendaServiceTest {
 
 		assertEquals("Venda finalizada com sucesso", retorno);
 
+		// T-8 (isolamento I-2): o vencimento de cada parcela e conferido em relacao a
+		// data de hoje, em vez de aceitar qualquer data.
 		verify(parcelas).gerarParcela(eq(50.0), eq(0.0), eq(0.0), eq(0.0), eq(50.0), any(Receber.class), eq(0), eq(1),
-				any(Timestamp.class), any(Date.class));
+				any(Timestamp.class), eq(hojeMais(30)));
 		verify(parcelas).gerarParcela(eq(50.0), eq(0.0), eq(0.0), eq(0.0), eq(50.0), any(Receber.class), eq(0), eq(2),
-				any(Timestamp.class), any(Date.class));
+				any(Timestamp.class), eq(hojeMais(60)));
 		verify(lancamentos, never()).lancamento(any());
 		verify(produtos).movimentaEstoque(COD_VENDA, EntradaSaida.SAIDA);
 	}
@@ -436,6 +474,57 @@ public class VendaServiceTest {
 		verify(lancamentos).lancamento(argThat(lancamento -> Double.valueOf(50.0).equals(lancamento.getValor())));
 		verify(parcelas).gerarParcela(eq(50.0), eq(0.0), eq(0.0), eq(0.0), eq(50.0), any(Receber.class), eq(0), eq(1),
 				any(Timestamp.class), any(Date.class));
+	}
+
+	@Test
+	public void fechaVenda_deveLancarNoCartao_quandoAVistaComCartaoDeDebito() {
+		// Teste funcional: R3 (a vista, cartao de debito) - docs/teste-funcional-venda.md
+		// T-2: o caso de cartao de credito ja existia; o de debito passa pelo
+		// primeiro operando do "||" e nao era verificado em caminho de sucesso.
+		preparaFechamento("00", null);
+		Optional<Titulo> tituloCartao = Optional.of(titulo(TituloTipo.CARTDEB));
+		when(tituloService.busca(1L)).thenReturn(tituloCartao);
+
+		String retorno = service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 0.0, 0.0, new String[] { "100.00" },
+				new String[] { "1" });
+
+		assertEquals("Venda finalizada com sucesso", retorno);
+		verify(cartaoLancamento).lancamento(100.0, tituloCartao);
+		verify(caixas, never()).caixaIsAberto();
+		verify(lancamentos, never()).lancamento(any());
+		verify(produtos).movimentaEstoque(COD_VENDA, EntradaSaida.SAIDA);
+	}
+
+	@Test
+	public void fechaVenda_deveRegistrarOReceberComDescontoEAcrescimo() {
+		// T-4: valor do receber = (produtos + acrescimo) - desconto = 100 + 20 - 10.
+		preparaFechamento("00", null);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.CARTCRED)));
+
+		service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 10.0, 20.0, new String[] { "100.00" },
+				new String[] { "1" });
+
+		verify(receberServ).cadastrar(argThat(receber -> Double.valueOf(110.0).equals(receber.getValor_total())));
+		verify(vendas).fechaVenda(eq(COD_VENDA), eq(VendaSituacao.FECHADA), eq(110.0), eq(10.0), eq(20.0),
+				any(Timestamp.class), any(PagamentoTipo.class));
+	}
+
+	@Test
+	public void fechaVenda_deveGravarAFormaDePagamentoNaVenda() {
+		// T-5: a venda carregada recebe a forma de pagamento escolhida.
+		Venda venda = vendaAberta(null);
+		when(vendas.findByCodigoEquals(COD_VENDA)).thenReturn(venda);
+		PagamentoTipo formaPagamento = new PagamentoTipo();
+		formaPagamento.setCodigo(COD_PAGAMENTO);
+		formaPagamento.setFormaPagamento("00");
+		when(formaPagamentos.busca(COD_PAGAMENTO)).thenReturn(formaPagamento);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.CARTCRED)));
+
+		service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 0.0, 0.0, new String[] { "100.00" },
+				new String[] { "1" });
+
+		assertSame(formaPagamento, venda.getPagamentotipo());
+		verify(receberServ).cadastrar(argThat(receber -> receber.getVenda() == venda));
 	}
 
 	// fechaVenda() - defeitos caracterizados
@@ -508,6 +597,107 @@ public class VendaServiceTest {
 		verify(produtos, times(1)).movimentaEstoque(COD_VENDA, EntradaSaida.SAIDA);
 	}
 
+	@Test
+	public void fechaVenda_deveFecharSemRegistrarRecebimento_quandoTituloAVistaNaoEDinheiroNemCartao() {
+		// Teste funcional: R5 (a vista, outro tipo de titulo) - docs/teste-funcional-venda.md
+		// T-3 / DEFEITO: o if/else-if de fechaVenda() nao tem "else". Um titulo a
+		// vista de outro tipo (ex.: PIX cadastrado na tabela titulo_tipo) fecha a
+		// venda e baixa o estoque sem lancar nada no caixa nem no cartao.
+		preparaFechamento("00", null);
+		Titulo pix = titulo(TituloTipo.DIN);
+		pix.getTipo().setSigla("PIX");
+		when(tituloService.busca(1L)).thenReturn(Optional.of(pix));
+
+		String retorno = service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 0.0, 0.0, new String[] { "100.00" },
+				new String[] { "1" });
+
+		assertEquals("Venda finalizada com sucesso", retorno);
+		verify(lancamentos, never()).lancamento(any());
+		verify(cartaoLancamento, never()).lancamento(any(), any());
+		verify(parcelas, never()).gerarParcela(any(), any(), any(), any(), any(), any(), eq(0), eq(1), any(), any());
+		verify(vendas).fechaVenda(eq(COD_VENDA), eq(VendaSituacao.FECHADA), eq(100.0), eq(0.0), eq(0.0),
+				any(Timestamp.class), any(PagamentoTipo.class));
+		verify(produtos).movimentaEstoque(COD_VENDA, EntradaSaida.SAIDA);
+	}
+
+	@Test
+	public void fechaVenda_deveRatearDescontoEAcrescimoComSinaisTrocados_nasParcelasAPrazo() {
+		// T-6 / DEFEITO: desconto (10) e acrescimo (4) sao divididos pelas 2 parcelas
+		// (5 e 2), mas como aprazo() recebe os argumentos trocados cada parcela sai
+		// por 50 + 5 - 2 = 53,00 (o correto seria 50 + 2 - 5 = 47,00). A venda e
+		// fechada por 94,00, mas as parcelas somam 106,00.
+		preparaFechamento("30/60", cliente);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
+
+		service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 10.0, 4.0, new String[] { "50.00", "50.00" },
+				new String[] { "1", "1" });
+
+		verify(parcelas).gerarParcela(eq(53.0), eq(0.0), eq(0.0), eq(0.0), eq(53.0), any(Receber.class), eq(0), eq(1),
+				any(Timestamp.class), eq(hojeMais(30)));
+		verify(parcelas).gerarParcela(eq(53.0), eq(0.0), eq(0.0), eq(0.0), eq(53.0), any(Receber.class), eq(0), eq(2),
+				any(Timestamp.class), eq(hojeMais(60)));
+		verify(vendas, times(2)).fechaVenda(eq(COD_VENDA), eq(VendaSituacao.FECHADA), eq(94.0), eq(10.0), eq(4.0),
+				any(Timestamp.class), any(PagamentoTipo.class));
+	}
+
+	@Test
+	public void fechaVenda_deveSubtrairOAcrescimo_noLancamentoDeCaixaAVista() {
+		// T-7 / DEFEITO: mesma troca de argumentos em avistaDinheiro(), agora com
+		// acrescimo. Com R$ 10 de acrescimo o caixa recebe 90,00 (100 - 10) enquanto
+		// a venda e fechada por 110,00.
+		preparaFechamento("00", null);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
+		when(caixas.caixaIsAberto()).thenReturn(true);
+		when(caixas.caixaAberto()).thenReturn(Optional.of(new Caixa()));
+		when(usuarios.buscaUsuario(any())).thenReturn(usuario);
+
+		service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 0.0, 10.0, new String[] { "100.00" },
+				new String[] { "1" });
+
+		verify(lancamentos).lancamento(argThat(lancamento -> Double.valueOf(90.0).equals(lancamento.getValor())));
+		verify(vendas).fechaVenda(eq(COD_VENDA), eq(VendaSituacao.FECHADA), eq(110.0), eq(0.0), eq(10.0),
+				any(Timestamp.class), any(PagamentoTipo.class));
+	}
+
+	@Test
+	public void fechaVenda_deveLancarErroTecnico_quandoTituloNaoExiste() {
+		// T-9a / DEFEITO: titulo inexistente gera NoSuchElementException (Optional.get
+		// sem verificacao), sem mensagem para o usuario, depois de o receber ja ter
+		// sido cadastrado.
+		preparaFechamento("00", null);
+		when(tituloService.busca(1L)).thenReturn(Optional.empty());
+
+		try {
+			service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 0.0, 0.0, new String[] { "100.00" },
+					new String[] { "1" });
+			fail("Deveria ter lancado NoSuchElementException");
+		} catch (NoSuchElementException e) {
+			// comportamento atual documentado
+		}
+
+		verify(receberServ).cadastrar(any(Receber.class));
+		verify(vendas, never()).fechaVenda(any(), any(), any(), any(), any(), any(), any());
+		verify(produtos, never()).movimentaEstoque(anyLong(), any());
+	}
+
+	@Test
+	public void fechaVenda_deveLancarErroTecnico_quandoVendaNaoExiste() {
+		// T-9b / DEFEITO: venda inexistente gera NullPointerException em
+		// vendaIsAberta(), em vez de uma mensagem como "venda nao encontrada".
+		when(vendas.findByCodigoEquals(COD_VENDA)).thenReturn(null);
+
+		try {
+			service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 0.0, 0.0, new String[] { "100.00" },
+					new String[] { "1" });
+			fail("Deveria ter lancado NullPointerException");
+		} catch (NullPointerException e) {
+			// comportamento atual documentado
+		}
+
+		verify(formaPagamentos, never()).busca(anyLong());
+		verify(receberServ, never()).cadastrar(any(Receber.class));
+	}
+
 	// fechaVenda() - falhas de infraestrutura
 
 	@Test
@@ -570,6 +760,186 @@ public class VendaServiceTest {
 		verify(produtos, never()).movimentaEstoque(anyLong(), any());
 	}
 
+	// Teste funcional (Entrega 2, Etapa 2) - classes de equivalencia e
+	// valores-limite derivados dos requisitos RF-02 a RF-04.
+	// Projeto completo em docs/teste-funcional-venda.md.
+
+	@Test
+	public void fechaVenda_deveRecusar_quandoValorDeProdutosLogoAbaixoDeZero() {
+		// TF-VEN-01 - limite E2: -0,01
+		when(vendas.findByCodigoEquals(COD_VENDA)).thenReturn(vendaAberta(null));
+
+		esperaErro("Venda sem valor, verifique", -0.01, 0.0, 0.0, new String[] { "-0.01" }, new String[] { "1" });
+
+		verify(formaPagamentos, never()).busca(anyLong());
+	}
+
+	@Test
+	public void fechaVenda_deveAceitar_quandoValorDeProdutosLogoAcimaDeZero() {
+		// TF-VEN-02 - limite E2: 0,01
+		preparaFechamento("00", null);
+		Optional<Titulo> tituloCartao = Optional.of(titulo(TituloTipo.CARTCRED));
+		when(tituloService.busca(1L)).thenReturn(tituloCartao);
+
+		String retorno = service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 0.01, 0.0, 0.0, new String[] { "0.01" },
+				new String[] { "1" });
+
+		assertEquals("Venda finalizada com sucesso", retorno);
+		verify(cartaoLancamento).lancamento(0.01, tituloCartao);
+		verify(vendas).fechaVenda(eq(COD_VENDA), eq(VendaSituacao.FECHADA), eq(0.01), eq(0.0), eq(0.0),
+				any(Timestamp.class), any(PagamentoTipo.class));
+	}
+
+	@Test
+	public void fechaVenda_deveRecusar_quandoParcelaAVistaUmCentavoAbaixoDoTotal() {
+		// TF-VEN-03 - limite E6: 99,99 para produtos de 100,00
+		preparaFechamento("00", null);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
+		when(caixas.caixaIsAberto()).thenReturn(true);
+
+		esperaErro("Valor das parcelas diferente do valor total de produtos, verifique", 100.0, 0.0, 0.0,
+				new String[] { "99.99" }, new String[] { "1" });
+
+		verify(lancamentos, never()).lancamento(any());
+	}
+
+	@Test
+	public void fechaVenda_deveRecusar_quandoParcelaAVistaUmCentavoAcimaDoTotal() {
+		// TF-VEN-04 - limite E6: 100,01 para produtos de 100,00
+		preparaFechamento("00", null);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
+		when(caixas.caixaIsAberto()).thenReturn(true);
+
+		esperaErro("Valor das parcelas diferente do valor total de produtos, verifique", 100.0, 0.0, 0.0,
+				new String[] { "100.01" }, new String[] { "1" });
+
+		verify(lancamentos, never()).lancamento(any());
+	}
+
+	@Test
+	public void fechaVenda_deveFecharVendaDeValorZero_quandoDescontoIgualAoTotal() {
+		// TF-VEN-05 / DEFEITO - limite E3 na fronteira: desconto de 100,00 sobre
+		// 100,00. O requisito nao preve venda de valor zero, mas o service nao valida
+		// o desconto e fecha a venda com total 0,00.
+		preparaFechamento("00", null);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.CARTCRED)));
+
+		String retorno = service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 100.0, 0.0, new String[] { "0.00" },
+				new String[] { "1" });
+
+		assertEquals("Venda finalizada com sucesso", retorno);
+		verify(receberServ).cadastrar(argThat(receber -> Double.valueOf(0.0).equals(receber.getValor_total())));
+		verify(vendas).fechaVenda(eq(COD_VENDA), eq(VendaSituacao.FECHADA), eq(0.0), eq(100.0), eq(0.0),
+				any(Timestamp.class), any(PagamentoTipo.class));
+	}
+
+	@Test
+	public void fechaVenda_deveFecharVendaDeValorNegativo_quandoDescontoMaiorQueOTotal() {
+		// TF-VEN-06 / DEFEITO - limite E3 acima da fronteira: desconto de 100,01
+		// sobre 100,00 fecha a venda com total negativo. Comparacao com tolerancia
+		// porque 100 - 100,01 nao e exatamente -0,01 em double.
+		preparaFechamento("00", null);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.CARTCRED)));
+
+		String retorno = service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 100.01, 0.0, new String[] { "0.00" },
+				new String[] { "1" });
+
+		assertEquals("Venda finalizada com sucesso", retorno);
+		verify(vendas).fechaVenda(eq(COD_VENDA), eq(VendaSituacao.FECHADA), doubleThat(v -> Math.abs(v + 0.01) < 1e-6),
+				eq(100.01), eq(0.0), any(Timestamp.class), any(PagamentoTipo.class));
+	}
+
+	@Test
+	public void fechaVenda_deveAceitarAcrescimoNegativoComoDesconto() {
+		// TF-VEN-07 / DEFEITO - classe invalida E4 (I6): acrescimo de -10,00 nao e
+		// recusado e reduz o total para 90,00.
+		preparaFechamento("00", null);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.CARTCRED)));
+
+		String retorno = service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 0.0, -10.0, new String[] { "90.00" },
+				new String[] { "1" });
+
+		assertEquals("Venda finalizada com sucesso", retorno);
+		verify(receberServ).cadastrar(argThat(receber -> Double.valueOf(90.0).equals(receber.getValor_total())));
+		verify(vendas).fechaVenda(eq(COD_VENDA), eq(VendaSituacao.FECHADA), eq(90.0), eq(0.0), eq(-10.0),
+				any(Timestamp.class), any(PagamentoTipo.class));
+	}
+
+	@Test
+	public void fechaVenda_deveTratarPrazoZeroComoAPrazo_exigindoCliente() {
+		// TF-VEN-08 - classe E5 (I7): so "00" e reconhecido como a vista. O prazo "0"
+		// cai no ramo a prazo e, sem cliente, a venda e recusada.
+		preparaFechamento("0", null);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
+
+		esperaErro("Venda sem cliente, verifique", 100.0, 0.0, 0.0, new String[] { "100.00" }, new String[] { "1" });
+
+		verify(caixas, never()).caixaIsAberto();
+		verify(lancamentos, never()).lancamento(any());
+	}
+
+	@Test
+	public void fechaVenda_deveLancarErroTecnico_quandoFaltamTitulosParaAsFormasDePagamento() {
+		// TF-VEN-09 / DEFEITO - classe invalida E10 (I14): 2 formas de pagamento e 1
+		// titulo. A 1a parcela e gerada e a venda e marcada como fechada antes de
+		// estourar ArrayIndexOutOfBoundsException na 2a.
+		preparaFechamento("30/60", cliente);
+		when(tituloService.busca(1L)).thenReturn(Optional.of(titulo(TituloTipo.DIN)));
+
+		try {
+			service.fechaVenda(COD_VENDA, COD_PAGAMENTO, 100.0, 0.0, 0.0, new String[] { "50.00", "50.00" },
+					new String[] { "1" });
+			fail("Deveria ter lancado ArrayIndexOutOfBoundsException");
+		} catch (ArrayIndexOutOfBoundsException e) {
+			// comportamento atual documentado
+		}
+
+		verify(parcelas).gerarParcela(eq(50.0), eq(0.0), eq(0.0), eq(0.0), eq(50.0), any(Receber.class), eq(0), eq(1),
+				any(Timestamp.class), eq(hojeMais(30)));
+		verify(vendas, times(1)).fechaVenda(any(), any(), any(), any(), any(), any(), any());
+		verify(produtos, never()).movimentaEstoque(anyLong(), any());
+	}
+
+	@Test
+	public void addProduto_deveLancarErroTecnico_quandoVendaNaoExiste() {
+		// TF-VEN-10 / DEFEITO - classe invalida E11 (I16): verificaSituacao devolve
+		// null para venda inexistente e o equals() fora do try estoura NPE.
+		try {
+			service.addProduto(COD_VENDA, COD_PRODUTO, 0.0);
+			fail("Deveria ter lancado NullPointerException");
+		} catch (NullPointerException e) {
+			// comportamento atual documentado
+		}
+
+		verify(vendaProdutos, never()).salvar(any());
+	}
+
+	@Test
+	public void busca_deveConsultarVendasFechadas_quandoSituacaoEmMinusculas() {
+		// TF-VEN-11 - classe E12 (I17): a comparacao diferencia maiusculas; "aberta"
+		// nao e "ABERTA" e a busca devolve as vendas FECHADAS.
+		Pageable pageable = PageRequest.of(0, 10);
+		Page<Venda> fechadas = new PageImpl<>(Collections.singletonList(new Venda()));
+		when(vendas.findBySituacaoEquals(VendaSituacao.FECHADA, pageable)).thenReturn(fechadas);
+
+		assertSame(fechadas, service.busca(new VendaFilter(), "aberta", pageable));
+		verify(vendas, never()).findBySituacaoEquals(eq(VendaSituacao.ABERTA), any());
+	}
+
+	@Test
+	public void busca_deveLancarErroTecnico_quandoSituacaoNula() {
+		// TF-VEN-12 / DEFEITO - classe invalida E12 (I18): situacao nula estoura NPE.
+		try {
+			service.busca(new VendaFilter(), null, PageRequest.of(0, 10));
+			fail("Deveria ter lancado NullPointerException");
+		} catch (NullPointerException e) {
+			// comportamento atual documentado
+		}
+
+		verify(vendas, never()).findBySituacaoEquals(any(), any());
+		verify(vendas, never()).findByCodigoIn(any(), any());
+	}
+
 	// fixtures e utilitarios
 
 	/**
@@ -604,6 +974,14 @@ public class VendaServiceTest {
 		venda.setValor_produtos(0.00);
 		venda.setPessoa(pessoa);
 		return venda;
+	}
+
+	/**
+	 * Data de vencimento esperada: hoje + dias, no mesmo formato que DataAtual
+	 * entrega ao service (java.sql.Date, fuso padrao da JVM).
+	 */
+	private Date hojeMais(int dias) {
+		return Date.valueOf(LocalDate.now().plusDays(dias));
 	}
 
 	private Titulo titulo(TituloTipo sigla) {
