@@ -147,7 +147,9 @@ serviço. A Issue #5 foi atualizada com essa conclusão.
 
 ## CT-REC-03 — Tentar receber um recebimento já processado
 
-**Status: NÃO EXECUTADO**
+**Status: NÃO EXECUTADO manualmente** — executado na Entrega 2 como teste de sistema
+automatizado, o TS-REC-03 em `RecebimentoSistemaIT.java`: os campos são reabilitados
+por JavaScript e o servidor recusa o reenvio com "Recebimento já esta fechado" (Passou).
 
 O caso foi projetado para verificar a guarda "Recebimento já esta fechado"
 (coberta por TU-REC-09). Após o processamento, o `recebimento.js` desabilita os
@@ -201,7 +203,7 @@ Vale registrar o que funcionou, por contraste:
 |---|---|---|---|
 | CT-REC-01 | TU-REC-01, TU-REC-07, TU-REC-13 | D4, D5, D6 (na preparação/execução) | Passou |
 | CT-REC-02 | TU-REC-08, TU-REC-19 | D2 (severidade revista) | Passou |
-| CT-REC-03 | TU-REC-09 | — | Não executado |
+| CT-REC-03 | TU-REC-09 | — | Não executado manualmente; automatizado no TS-REC-03 (Passou) |
 
 O CT-REC-01 é o cenário cadastrado no **TestLink** (link a preencher no
 `README.md`).

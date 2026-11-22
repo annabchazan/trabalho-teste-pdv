@@ -25,11 +25,30 @@ Os seis estão registrados como GitHub Issues: [#4](https://github.com/annabchaz
 
 D1 a D3 foram encontrados projetando os testes unitários; **D4 a D6 foram encontrados executando o teste manual CT-REC-01** — ver `docs/testes-manuais/CT-REC-01.md`.
 
+### Situação na Entrega 2
+
+Na Entrega 2 os defeitos de `RecebimentoService` foram corrigidos, e o projeto
+funcional encontrou mais dois (D7 e D8). Cada correção tem um teste que falhava
+antes e passa depois; os testes que estavam com `@Ignore` voltaram a rodar como
+testes de regressão. Detalhes em [`docs/entrega2-recebimento.md`](../entrega2-recebimento.md).
+
+| ID | Situação | Teste de regressão |
+|---|---|---|
+| D1 | Corrigido: `.equals()` no lugar de `!=` | TU-REC-06, TU-REC-27 e todos os TI-REC (cliente 9201) |
+| D2 | Corrigido: nulo testado antes do zero | TU-REC-19 |
+| D3 | Corrigido: título ou recebimento inexistente dão mensagem de validação | TU-REC-20, TU-REC-40 |
+| D4 | Aberto: está no esquema do banco, fora desta classe | — |
+| D5 | Aberto: está num gatilho do banco, fora desta classe | — |
+| D6 | Corrigido: lista vazia ou em branco dá mensagem de validação | TU-REC-25, TU-REC-28, TU-REC-43, TS-REC-04 |
+| D7 ([#24](https://github.com/annabchazan/trabalho-teste-pdv/issues/24)) | Novo, corrigido: caixa validado antes de quitar parcelas | TU-REC-41, TI-REC-07 |
+| D8 ([#25](https://github.com/annabchazan/trabalho-teste-pdv/issues/25)) | Novo, corrigido: valor limitado ao que falta nas parcelas | TU-REC-42, TI-REC-06 |
+| D9 ([#26](https://github.com/annabchazan/trabalho-teste-pdv/issues/26)) | Novo, aberto: está no `SecurityConfig`, fora desta classe | TS-REC-07 (com `@Ignore` até a correção) |
+
 ---
 
 ## D1 — Comparação de `Long` com `!=` rejeita parcelas do próprio cliente
 
-**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:72`
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:72` (versão da Entrega 1)
 **Teste:** TU-REC-06 (`abrirRecebimento_deveAceitarParcela_quandoClienteTemCodigoAcimaDoCacheDeLong`)
 **Issue:** [#4](https://github.com/annabchazan/trabalho-teste-pdv/issues/4)
 **Severidade:** Alta — impede o recebimento na operação real.
@@ -73,7 +92,7 @@ if (!parcela.getReceber().getPessoa().getCodigo().equals(codpes))
 
 ## D2 — `NullPointerException` quando o título não é informado
 
-**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:108`
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:108` (versão da Entrega 1)
 **Teste:** TU-REC-19 (`receber_deveLancarMensagemAmigavel_quandoCodigoDoTituloENulo`)
 **Issue:** [#5](https://github.com/annabchazan/trabalho-teste-pdv/issues/5)
 **Severidade:** Média — validação existe, mas é inalcançável.
@@ -112,7 +131,7 @@ usar `Long.valueOf(0L).equals(codtitulo)`.
 
 ## D3 — `NoSuchElementException` ("No value present") com título inexistente
 
-**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:106` e `:115`
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:106` e `:115` (versão da Entrega 1)
 **Teste:** TU-REC-20 (`receber_deveLancarMensagemAmigavel_quandoTituloNaoExiste`)
 **Issue:** [#6](https://github.com/annabchazan/trabalho-teste-pdv/issues/6)
 **Severidade:** Média — erro técnico vazando para o usuário.
@@ -324,7 +343,7 @@ justifica priorizar **testes de integração com banco real** na Entrega 2.
 
 ## D6 — `NumberFormatException` ao receber sem selecionar parcelas
 
-**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:67`
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java:67` (versão da Entrega 1)
 e `src/main/java/net/originmobi/pdv/controller/ReceberController.java:97`
 **Teste:** TU-REC-25 (`abrirRecebimento_deveLancarMensagemAmigavel_quandoNenhumaParcelaFoiSelecionada`)
 **Encontrado em:** execução do CT-REC-01, passo 5
@@ -381,6 +400,117 @@ cliente inexistente e falha do repositório — mas nenhum exercitava a lista de
 parcelas vazia. O caso **TU-REC-25** foi acrescentado depois da execução manual,
 e o registro dessa descoberta está em
 [`docs/ai/revisao-recebimento-service.md`](../ai/revisao-recebimento-service.md).
+
+---
+
+## D7 — Receber em dinheiro sem caixa aberto mostra "No value present"
+
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java` (versão da Entrega 1, linhas 170-172)
+**Teste:** TU-REC-41 (`receber_deveLancarMensagemAmigavel_quandoTituloEmDinheiroENaoHaCaixaAberto`) e TI-REC-07
+**Issue:** [#24](https://github.com/annabchazan/trabalho-teste-pdv/issues/24)
+**Como foi encontrado:** tabela de decisão do projeto funcional da Entrega 2 (regra R7)
+**Severidade:** Média — erro técnico vazando para o usuário; os dados ficam corretos.
+
+### Descrição
+
+```java
+Optional<Caixa> caixa = caixas.caixaAberto();
+CaixaLancamento lancamento = new CaixaLancamento(..., caixa.get(), usuario);
+```
+
+Com título em dinheiro e nenhum caixa aberto, `caixa.get()` lança
+`NoSuchElementException`. Isso acontece **depois** de todas as parcelas terem sido
+quitadas; o `@Transactional` desfaz a quitação, então o banco fica certo, mas o
+usuário vê "No value present" em vez de saber que precisa abrir o caixa.
+
+### Resultado esperado
+
+Mensagem "Nenhum caixa aberto, abra o caixa para receber em dinheiro", sem tocar nas parcelas.
+
+### Correção aplicada
+
+O caixa passou a ser buscado e validado antes do rateio, só para títulos que não são de cartão.
+
+---
+
+## D8 — Parcela paga pela outra tela faz o caixa receber dinheiro que não entrou
+
+**Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java` (versão da Entrega 1, linhas 118-122 e 133)
+**Teste:** TU-REC-42 (`receber_deveRecusarValorAcimaDoQueFaltaNasParcelas_quandoParcelaFoiPagaDepoisDeAbrirORecebimento`) e TI-REC-06
+**Issue:** [#25](https://github.com/annabchazan/trabalho-teste-pdv/issues/25)
+**Como foi encontrado:** classes de equivalência do projeto funcional da Entrega 2 (valor recebido em relação ao que falta pagar)
+**Severidade:** Alta — o saldo do caixa fica maior que o dinheiro recebido.
+
+### Descrição
+
+O valor recebido era comparado só com o `valor_total` gravado no recebimento
+quando ele foi aberto. Mas a mesma parcela pode ser paga, nesse meio-tempo, pela
+tela de contas a receber (`ReceberController` → `ParcelaService.receber`). Exemplo:
+
+1. Abrir um recebimento com uma parcela de R$ 100,00.
+2. Pela tela de contas a receber, pagar R$ 60,00 dessa parcela. Faltam R$ 40,00.
+3. Voltar ao recebimento e receber R$ 100,00 em dinheiro.
+
+O serviço aceitava os R$ 100,00, quitava os R$ 40,00 que faltavam na parcela e
+lançava **R$ 100,00** de entrada no caixa. O caixa ficava com R$ 60,00 a mais do que
+de fato entrou.
+
+### Resultado esperado
+
+Recusar com "Valor de recebimento é superior aos títulos", sem quitar nada e sem lançar no caixa.
+
+### Correção aplicada
+
+Além do total do recebimento, o valor passou a ser comparado com a soma do que
+ainda falta pagar nas parcelas, lida no momento do recebimento.
+
+---
+
+## D9 — Usuário sem permissão consegue receber chamando o endereço direto
+
+**Arquivo:** `src/main/java/net/originmobi/pdv/security/SecurityConfig.java:51`
+**Teste:** TS-REC-07 (`usuarioSemPermissao_naoPodeReceberPeloEnderecoDireto`), com `@Ignore` até a correção
+**Issue:** [#26](https://github.com/annabchazan/trabalho-teste-pdv/issues/26)
+**Como foi encontrado:** projeto do teste de sistema de segurança da Entrega 2
+**Severidade:** Alta — qualquer usuário logado pode registrar entrada de dinheiro no caixa.
+
+### Descrição
+
+```java
+.antMatchers("/recebimento/").hasRole("REALIZAR_RECEBIMENTO")
+```
+
+A regra só vale para o endereço literal `/recebimento/`, com a barra no fim, que
+nenhuma tela usa. As requisições reais — `POST /recebimento` (receber),
+`GET /recebimento/{codigo}` (tela do recebimento) e `GET /receber/parcelas` (abrir o
+recebimento) — caem na regra geral `anyRequest().authenticated()`. O sistema
+apenas esconde o botão "Receber" (`sec:authorize` no HTML) de quem não tem a
+permissão.
+
+### Passos para reproduzir
+
+1. Criar um grupo só com a permissão `ENTRAR_NO_SISTEMA` e um usuário nesse grupo.
+2. Entrar com esse usuário. `GET /receber` responde 403, como esperado.
+3. Com a mesma sessão, enviar `POST /recebimento?receber=<código>&titulo=<código>&vlrecebido=150.00&desconto=&acrescimo=`.
+
+### Resultado esperado
+
+HTTP 403; nenhuma parcela quitada e nenhum lançamento no caixa.
+
+### Resultado obtido
+
+HTTP 200 e "Recebimento realizado com sucesso": as parcelas são quitadas e o caixa
+recebe o lançamento. Verificado pelo TS-REC-07 sem o `@Ignore`
+(`expected:<403> but was:<200>`).
+
+### Correção sugerida
+
+```java
+.antMatchers("/recebimento", "/recebimento/**", "/receber/parcelas").hasRole("REALIZAR_RECEBIMENTO")
+```
+
+Não foi corrigido nesta entrega porque o `SecurityConfig` é compartilhado por
+todos os módulos; a correção fica para decisão do grupo.
 
 ---
 

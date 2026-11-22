@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,57 +29,57 @@ import net.originmobi.pdv.utilitarios.DataAtual;
 @Service
 public class RecebimentoService {
 
-	@Autowired
-	private RecebimentoRepository recebimentos;
+	private static final String ERRO_AO_RECEBER = "Ocorreu um erro ao realizar o recebimento, chame o suporte";
+	private static final String VALOR_SUPERIOR = "Valor de recebimento é superior aos títulos";
 
-	@Autowired
-	private PessoaService pessoas;
+	private final RecebimentoRepository recebimentos;
+	private final PessoaService pessoas;
+	private final RecebimentoParcelaService receParcelas;
+	private final ParcelaService parcelas;
+	private final CaixaService caixas;
+	private final UsuarioService usuarios;
+	private final CaixaLancamentoService lancamentos;
+	private final TituloService titulos;
+	private final CartaoLancamentoService cartaoLancamentos;
 
-	@Autowired
-	private RecebimentoParcelaService receParcelas;
-
-	@Autowired
-	private ParcelaService parcelas;
-
-	@Autowired
-	private CaixaService caixas;
-
-	@Autowired
-	private UsuarioService usuarios;
-
-	@Autowired
-	private CaixaLancamentoService lancamentos;
-
-	@Autowired
-	private TituloService titulos;
-
-	@Autowired
-	private CartaoLancamentoService cartaoLancamentos;
+	public RecebimentoService(RecebimentoRepository recebimentos, PessoaService pessoas,
+			RecebimentoParcelaService receParcelas, ParcelaService parcelas, CaixaService caixas,
+			UsuarioService usuarios, CaixaLancamentoService lancamentos, TituloService titulos,
+			CartaoLancamentoService cartaoLancamentos) {
+		this.recebimentos = recebimentos;
+		this.pessoas = pessoas;
+		this.receParcelas = receParcelas;
+		this.parcelas = parcelas;
+		this.caixas = caixas;
+		this.usuarios = usuarios;
+		this.lancamentos = lancamentos;
+		this.titulos = titulos;
+		this.cartaoLancamentos = cartaoLancamentos;
+	}
 
 	public String abrirRecebimento(Long codpes, String[] arrayParcelas) {
-		List<Parcela> lista = new ArrayList<>();
+		List<String> codigosParcelas = codigosInformados(arrayParcelas);
 
+		// D6: sem parcela marcada a tela envia um texto vazio
+		if (codigosParcelas.isEmpty())
+			throw new RuntimeException("Selecione ao menos uma parcela para receber");
+
+		List<Parcela> lista = new ArrayList<>();
 		DataAtual dataAtual = new DataAtual();
 		Double vlTotal = 0.0;
 
-		for (int i = 0; i < arrayParcelas.length; i++) {
-			Parcela parcela = parcelas.busca(Long.decode(arrayParcelas[i]));
+		for (String codigo : codigosParcelas) {
+			Parcela parcela = parcelas.busca(Long.decode(codigo));
 
 			if (parcela.getQuitado() == 1)
 				throw new RuntimeException("Parcela " + parcela.getCodigo() + " já esta quitada, verifique.");
 
-			if (parcela.getReceber().getPessoa().getCodigo() != codpes)
+			// D1: Long comparado por valor, e não por referência
+			if (!parcela.getReceber().getPessoa().getCodigo().equals(codpes))
 				throw new RuntimeException("A parcela " + parcela.getCodigo() + " não pertence ao cliente selecionado");
 
-			try {
-				lista.add(parcela);
-
-				vlTotal = vlTotal + parcela.getValor_restante();
-
-			} catch (Exception e) {
-				e.getMessage();
-				throw new RuntimeException("Erro ao receber, chame o suporte");
-			}
+			lista.add(parcela);
+			vlTotal = vlTotal + parcela.getValor_restante();
 		}
 
 		Optional<Pessoa> pessoa = pessoas.buscaPessoa(codpes);
@@ -93,8 +92,7 @@ public class RecebimentoService {
 		try {
 			recebimentos.save(recebimento);
 		} catch (Exception e) {
-			e.getMessage();
-			throw new RuntimeException("Erro ao receber, chame o suporte");
+			throw new RuntimeException("Erro ao receber, chame o suporte", e);
 		}
 
 		return recebimento.getCodigo().toString();
@@ -102,24 +100,25 @@ public class RecebimentoService {
 
 	@Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 	public String receber(Long codreceber, Double vlrecebido, Double vlacrescimo, Double vldesconto, Long codtitulo) {
-		Optional<Recebimento> recebimento = recebimentos.findById(codreceber);
-		Optional<Titulo> titulo = titulos.busca(codtitulo);
-
-		if (codtitulo == 0 || codtitulo == null)
+		// D2: testa o nulo antes de comparar com zero
+		if (codtitulo == null || codtitulo == 0)
 			throw new RuntimeException("Selecione um título para realizar o recebimento");
 
-		if (recebimento.map(Recebimento::getData_processamento).isPresent())
+		// D3: Optional vazio vira mensagem de validação, e não "No value present"
+		Recebimento recebimento = recebimentos.findById(codreceber)
+				.orElseThrow(() -> new RuntimeException("Recebimento não encontrado, favor verifique"));
+
+		if (recebimento.getData_processamento() != null)
 			throw new RuntimeException("Recebimento já esta fechado");
 
+		Titulo titulo = titulos.busca(codtitulo)
+				.orElseThrow(() -> new RuntimeException("Título não encontrado, favor verifique"));
+
 		// vincula o titulo ao recebimento
-		recebimento.get().setTitulo(titulo.get());
+		recebimento.setTitulo(titulo);
 
-		DecimalFormat formata = new DecimalFormat("0.00");
-		Double vlrecebimento = Double
-				.valueOf(formata.format(recebimento.map(Recebimento::getValor_total).get()).replaceAll(",", "."));
-
-		if (vlrecebido > vlrecebimento)
-			throw new RuntimeException("Valor de recebimento é superior aos títulos");
+		if (vlrecebido > duasCasas(recebimento.getValor_total()))
+			throw new RuntimeException(VALOR_SUPERIOR);
 
 		List<Parcela> listParcelas = receParcelas.parcelasDoReceber(codreceber);
 
@@ -129,72 +128,65 @@ public class RecebimentoService {
 		if (vlrecebido <= 0.0)
 			throw new RuntimeException("Valor de recebimento inválido");
 
-		// guarda o valor do lançamento de caixa
-		Double vllancamento = vlrecebido;
+		// D8: as parcelas podem ter sido pagas pela tela de contas a receber depois
+		// que o recebimento foi aberto; o valor não pode passar do que ainda falta
+		if (vlrecebido > duasCasas(restanteDas(listParcelas)))
+			throw new RuntimeException(VALOR_SUPERIOR);
 
-		// verifica cada parcela que veio e realiza o seu recebimento individual
-		for (int i = 0; i < listParcelas.size(); i++) {
+		boolean cartao = isCartao(titulo);
 
-			if (vlrecebido > 0) {
-				Double vlsobra = vlrecebido - listParcelas.get(i).getValor_restante();
-				vlsobra = vlsobra < 0 ? 0 : vlsobra;
-
-				Double vlquitado = vlsobra - vlrecebido;
-				vlquitado = vlquitado < 0 ? vlquitado * -1 : vlquitado;
-
-				vlrecebido = vlsobra;
-
-				Long parcela = listParcelas.get(i).getCodigo();
-
-				try {
-					parcelas.receber(parcela, vlquitado, 0.00, 0.00);
-				} catch (Exception e) {
-					e.getMessage();
-					throw new RuntimeException("Ocorreu um erro ao realizar o recebimento, chame o suporte");
-				}
-			}
-
+		// D7: valida o caixa antes de quitar qualquer parcela
+		Optional<Caixa> caixa = Optional.empty();
+		if (!cartao) {
+			caixa = caixas.caixaAberto();
+			if (!caixa.isPresent())
+				throw new RuntimeException("Nenhum caixa aberto, abra o caixa para receber em dinheiro");
 		}
 
-		Aplicacao aplicacao = new Aplicacao();
-		Usuario usuario = usuarios.buscaUsuario(aplicacao.getUsuarioAtual());
+		// distribui o valor entre as parcelas, na ordem: cada uma recebe até o que
+		// falta pagar nela e a sobra passa para a seguinte
+		Double vlrestante = vlrecebido;
+		for (Parcela parcela : listParcelas) {
+			if (vlrestante <= 0)
+				break;
 
-		// pega a sigla do titulo
-		String sigla = titulo.map(Titulo::getTipo).get().getSigla();
+			Double vlquitado = Math.min(vlrestante, parcela.getValor_restante());
+			vlrestante = vlrestante - vlquitado;
 
-		// verifica se é um lançamento do tipo cartão para lançar o cartao_lancamento
-		if (sigla.equals(TituloTipo.CARTDEB.toString()) || sigla.equals(TituloTipo.CARTCRED.toString())) {
-			cartaoLancamentos.lancamento(vllancamento, titulo);
+			try {
+				parcelas.receber(parcela.getCodigo(), vlquitado, 0.00, 0.00);
+			} catch (Exception e) {
+				throw new RuntimeException(ERRO_AO_RECEBER, e);
+			}
+		}
 
+		Usuario usuario = usuarios.buscaUsuario(new Aplicacao().getUsuarioAtual());
+
+		if (cartao) {
+			cartaoLancamentos.lancamento(vlrecebido, Optional.of(titulo));
 		} else {
-			Optional<Caixa> caixa = caixas.caixaAberto();
-			CaixaLancamento lancamento = new CaixaLancamento("Referente ao recebimento " + codreceber, vllancamento,
+			CaixaLancamento lancamento = new CaixaLancamento("Referente ao recebimento " + codreceber, vlrecebido,
 					TipoLancamento.RECEBIMENTO, EstiloLancamento.ENTRADA, caixa.get(), usuario);
 
 			// vincula o recebimento ao caixa_lancamento
-			lancamento.setRecebimento(recebimento.get());
+			lancamento.setRecebimento(recebimento);
 
-			// Faz um caixa lançamento no valor do receber;
 			try {
 				lancamentos.lancamento(lancamento);
 			} catch (Exception e) {
-				e.getMessage();
-				throw new RuntimeException("Ocorreu um erro ao realizar o recebimento, chame o suporte");
+				throw new RuntimeException(ERRO_AO_RECEBER, e);
 			}
 		}
 
 		try {
-			DataAtual dataAtual = new DataAtual();
+			recebimento.setValor_recebido(vlrecebido);
+			recebimento.setValor_acrescimo(vlacrescimo);
+			recebimento.setValor_desconto(vldesconto);
+			recebimento.setData_processamento(new DataAtual().dataAtualTimeStamp());
 
-			recebimento.get().setValor_recebido(vllancamento);
-			recebimento.get().setValor_acrescimo(vlacrescimo);
-			recebimento.get().setValor_desconto(vldesconto);
-			recebimento.get().setData_processamento(dataAtual.dataAtualTimeStamp());
-
-			recebimentos.save(recebimento.get());
+			recebimentos.save(recebimento);
 		} catch (Exception e) {
-			e.getMessage();
-			throw new RuntimeException("Ocorreu um erro ao realizar o recebimento, chame o suporte");
+			throw new RuntimeException(ERRO_AO_RECEBER, e);
 		}
 
 		return "Recebimento realizado com sucesso";
@@ -209,11 +201,36 @@ public class RecebimentoService {
 		try {
 			recebimentos.deleteById(codigo);
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			throw new RuntimeException("Erro ao remover orçamento, chame o suporte");
+			throw new RuntimeException("Erro ao remover orçamento, chame o suporte", e);
 		}
 
 		return "removido com sucesso";
+	}
+
+	private static List<String> codigosInformados(String[] arrayParcelas) {
+		List<String> codigos = new ArrayList<>();
+		if (arrayParcelas != null)
+			for (String codigo : arrayParcelas)
+				if (!codigo.trim().isEmpty())
+					codigos.add(codigo.trim());
+		return codigos;
+	}
+
+	private static boolean isCartao(Titulo titulo) {
+		String sigla = titulo.getTipo().getSigla();
+		return sigla.equals(TituloTipo.CARTDEB.toString()) || sigla.equals(TituloTipo.CARTCRED.toString());
+	}
+
+	private static Double restanteDas(List<Parcela> listParcelas) {
+		Double restante = 0.0;
+		for (Parcela parcela : listParcelas)
+			restante = restante + parcela.getValor_restante();
+		return restante;
+	}
+
+	private static Double duasCasas(Double valor) {
+		DecimalFormat formata = new DecimalFormat("0.00");
+		return Double.valueOf(formata.format(valor).replaceAll(",", "."));
 	}
 
 }
