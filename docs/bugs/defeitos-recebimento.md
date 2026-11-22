@@ -40,9 +40,9 @@ testes de regressão. Detalhes em [`docs/entrega2-recebimento.md`](../entrega2-r
 | D4 | Aberto: está no esquema do banco, fora desta classe | — |
 | D5 | Aberto: está num gatilho do banco, fora desta classe | — |
 | D6 | Corrigido: lista vazia ou em branco dá mensagem de validação | TU-REC-25, TU-REC-28, TU-REC-43, TS-REC-04 |
-| D7 | Novo, corrigido: caixa validado antes de quitar parcelas | TU-REC-41, TI-REC-07 |
-| D8 | Novo, corrigido: valor limitado ao que falta nas parcelas | TU-REC-42, TI-REC-06 |
-| D9 | Novo, aberto: está no `SecurityConfig`, fora desta classe | TS-REC-07 (com `@Ignore` até a correção) |
+| D7 ([#24](https://github.com/annabchazan/trabalho-teste-pdv/issues/24)) | Novo, corrigido: caixa validado antes de quitar parcelas | TU-REC-41, TI-REC-07 |
+| D8 ([#25](https://github.com/annabchazan/trabalho-teste-pdv/issues/25)) | Novo, corrigido: valor limitado ao que falta nas parcelas | TU-REC-42, TI-REC-06 |
+| D9 ([#26](https://github.com/annabchazan/trabalho-teste-pdv/issues/26)) | Novo, aberto: está no `SecurityConfig`, fora desta classe | TS-REC-07 (com `@Ignore` até a correção) |
 
 ---
 
@@ -407,6 +407,7 @@ e o registro dessa descoberta está em
 
 **Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java` (versão da Entrega 1, linhas 170-172)
 **Teste:** TU-REC-41 (`receber_deveLancarMensagemAmigavel_quandoTituloEmDinheiroENaoHaCaixaAberto`) e TI-REC-07
+**Issue:** [#24](https://github.com/annabchazan/trabalho-teste-pdv/issues/24)
 **Como foi encontrado:** tabela de decisão do projeto funcional da Entrega 2 (regra R7)
 **Severidade:** Média — erro técnico vazando para o usuário; os dados ficam corretos.
 
@@ -436,6 +437,7 @@ O caixa passou a ser buscado e validado antes do rateio, só para títulos que n
 
 **Arquivo:** `src/main/java/net/originmobi/pdv/service/RecebimentoService.java` (versão da Entrega 1, linhas 118-122 e 133)
 **Teste:** TU-REC-42 (`receber_deveRecusarValorAcimaDoQueFaltaNasParcelas_quandoParcelaFoiPagaDepoisDeAbrirORecebimento`) e TI-REC-06
+**Issue:** [#25](https://github.com/annabchazan/trabalho-teste-pdv/issues/25)
 **Como foi encontrado:** classes de equivalência do projeto funcional da Entrega 2 (valor recebido em relação ao que falta pagar)
 **Severidade:** Alta — o saldo do caixa fica maior que o dinheiro recebido.
 
@@ -468,6 +470,7 @@ ainda falta pagar nas parcelas, lida no momento do recebimento.
 
 **Arquivo:** `src/main/java/net/originmobi/pdv/security/SecurityConfig.java:51`
 **Teste:** TS-REC-07 (`usuarioSemPermissao_naoPodeReceberPeloEnderecoDireto`), com `@Ignore` até a correção
+**Issue:** [#26](https://github.com/annabchazan/trabalho-teste-pdv/issues/26)
 **Como foi encontrado:** projeto do teste de sistema de segurança da Entrega 2
 **Severidade:** Alta — qualquer usuário logado pode registrar entrada de dinheiro no caixa.
 

@@ -236,9 +236,9 @@ Prints: `sonar-RecebimentoService-issues.png` e `sonar-RecebimentoService-metric
 | D2 (#5) | Nulo testado depois do unboxing | Entrega 1, projeto unitário | Corrigido |
 | D3 (#6) | Título inexistente gera "No value present" | Entrega 1, projeto unitário | Corrigido, junto com a variante do recebimento inexistente |
 | D6 (#12) | Receber sem marcar parcela gera `NumberFormatException` | Entrega 1, teste manual | Corrigido |
-| D7 | Dinheiro sem caixa aberto gera "No value present" | Entrega 2, tabela de decisão | Corrigido |
-| D8 | Parcela paga pela outra tela faz o caixa receber dinheiro que não entrou | Entrega 2, classes de equivalência | Corrigido |
-| D9 | Usuário sem permissão consegue receber chamando o endereço direto | Entrega 2, teste de sistema de segurança | Aberto (`SecurityConfig`, fora da classe) |
+| D7 (#24) | Dinheiro sem caixa aberto gera "No value present" | Entrega 2, tabela de decisão | Corrigido |
+| D8 (#25) | Parcela paga pela outra tela faz o caixa receber dinheiro que não entrou | Entrega 2, classes de equivalência | Corrigido |
+| D9 (#26) | Usuário sem permissão consegue receber chamando o endereço direto | Entrega 2, teste de sistema de segurança | Aberto (`SecurityConfig`, fora da classe) |
 
 Descrição completa, com passos e correção: [`docs/bugs/defeitos-recebimento.md`](bugs/defeitos-recebimento.md).
 

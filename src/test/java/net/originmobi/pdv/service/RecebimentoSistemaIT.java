@@ -209,7 +209,7 @@ public class RecebimentoSistemaIT {
 	// Falha hoje pelo defeito D9: no SecurityConfig a regra é "/recebimento/", que
 	// não corresponde a nenhuma requisição real; o sistema só esconde o botão.
 	// @Ignore até o defeito ser corrigido - remover a anotação reproduz a falha.
-	@org.junit.Ignore("Defeito D9: SecurityConfig protege \"/recebimento/\" em vez de \"/recebimento/**\"; ver docs/bugs/defeitos-recebimento.md")
+	@org.junit.Ignore("Defeito D9 (Issue #26): SecurityConfig protege \"/recebimento/\" em vez de \"/recebimento/**\"; ver docs/bugs/defeitos-recebimento.md")
 	@Test
 	public void usuarioSemPermissao_naoPodeReceberPeloEnderecoDireto() throws SQLException {
 		long recebimento = 9301L;

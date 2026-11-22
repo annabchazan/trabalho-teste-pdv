@@ -88,7 +88,7 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 - Testes de sistema (Selenium) TS-REC-01..07: [`RecebimentoSistemaIT.java`](src/test/java/net/originmobi/pdv/service/RecebimentoSistemaIT.java)
 - Evidências de JaCoCo, PIT e SonarQube, antes e depois: [`docs/evidencias/entrega2/recebimento/`](docs/evidencias/entrega2/recebimento/)
 - Casos de teste manual CT-REC-01..03 — **executados**, com resultados obtidos: [`docs/testes-manuais/CT-REC-01.md`](docs/testes-manuais/CT-REC-01.md)
-- Defeitos encontrados (D1 a D9; D1, D2, D3, D6, D7 e D8 corrigidos na Entrega 2): [`docs/bugs/defeitos-recebimento.md`](docs/bugs/defeitos-recebimento.md) — Issues [#4](../../issues/4), [#5](../../issues/5), [#6](../../issues/6), [#10](../../issues/10), [#11](../../issues/11), [#12](../../issues/12)
+- Defeitos encontrados (D1 a D9; D1, D2, D3, D6, D7 e D8 corrigidos na Entrega 2): [`docs/bugs/defeitos-recebimento.md`](docs/bugs/defeitos-recebimento.md) — Issues [#4](../../issues/4), [#5](../../issues/5), [#6](../../issues/6), [#10](../../issues/10), [#11](../../issues/11), [#12](../../issues/12), [#24](../../issues/24), [#25](../../issues/25), [#26](../../issues/26)
 - Soluções iniciais geradas com IA, preservadas: [`v1`](docs/ai/snapshots/RecebimentoServiceTest.v1-ia.java) (Entrega 1) e [`v2`](docs/ai/snapshots/RecebimentoServiceTest.v2-ia.java) (Entrega 2)
 - Revisão das soluções geradas com IA: [`docs/ai/revisao-recebimento-service.md`](docs/ai/revisao-recebimento-service.md)
 
