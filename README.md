@@ -76,6 +76,8 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 - Testes de integração TI-NFI-01..05: [`NotaFiscalItemServiceIT.java`](src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemServiceIT.java)
 - Testes de sistema (Selenium) TS-NFI-01..05: [`NotaFiscalItemSistemaIT.java`](src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemSistemaIT.java)
 - Evidências de JaCoCo, PIT e SonarQube, antes e depois dos testes novos: [`docs/evidencias/entrega2/`](docs/evidencias/entrega2/)
+- Medidas ISO/IEC 25010 (rascunho; versão oficial no [Google Docs](https://docs.google.com/document/d/1oVK7AhjF8N6JUp6qeUy8XOYfglWvrWK11OmjJYEYRDw/edit?tab=t.0)): [`docs/medidas-iso25010-nota-fiscal-item.md`](docs/medidas-iso25010-nota-fiscal-item.md)
+- Resultados: 100% de arestas e 89% de mutação (33/37, os 4 restantes equivalentes); Sonar de 5 problemas para 0; 2 defeitos na classe, nenhum corrigido
 - Casos de teste manual CT-NFI-01/02: [`docs/testes-manuais/CT-NFI-01.md`](docs/testes-manuais/CT-NFI-01.md)
 - CT-NFI-01 executado no TestLink (Passou): [`docs/testes-manuais/evidencias/`](docs/testes-manuais/evidencias/)
 - Defeitos encontrados: Issues [#1](../../issues/1), [#2](../../issues/2)
