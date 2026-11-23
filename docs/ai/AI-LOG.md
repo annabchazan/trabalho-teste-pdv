@@ -336,7 +336,8 @@ contra o código de produção. Oito cenários são testes de caracterização d
     de valor limite e partição.
   - Testes de integração: criou os casos TI-NFI-01 a 05, com o MySQL do
     docker-compose.
-  - Testes de sistema: criou os casos TS-NFI-01 a 05, com Selenium.
+  - Testes de sistema: criou os casos TS-NFI-01 a 06, com Selenium. O
+    TS-NFI-06 mede o tempo de inclusão de item (requisito de desempenho).
   - Sonar: trocou a injeção por atributo pela injeção pelo construtor em
     `NotaFiscalItemService.java`, para resolver os 5 apontamentos.
   - Evidências: rodou JaCoCo, PIT e SonarQube e gerou os prints e recortes
@@ -355,11 +356,13 @@ contra o código de produção. Oito cenários são testes de caracterização d
   - Suíte completa executada no container Java 8 com MySQL: 93 testes, sem
     falhas, 7 ignorados por defeitos documentados.
   - NotaFiscalItemServiceIT: 5 testes, sem falhas, 1 ignorado pela Issue #2.
+  - TS-NFI-06: 5 execuções, 44 de 50 medições dentro de 2 s (88%),
+    mediana de 830 ms. Fica com @Ignore pela violação intermitente.
   - Mutantes sobreviventes analisados e classificados como equivalentes:
     4 mutantes, nas linhas 115, 133, 165 e 174.
   - A responsável revisou, junto com a IA, tudo o que foi feito: código,
     testes, textos e prints. Os casos que expõem defeitos (TU-NFI-14, 21 e
-    22; TI-NFI-05; TS-NFI-02) ficaram com @Ignore, apontando a Issue ou o
+    22; TI-NFI-05; TS-NFI-02 e 06) ficaram com @Ignore, apontando a Issue ou o
     defeito correspondente.
 
 <!--

@@ -26,7 +26,7 @@ defeito conta na característica que ele afeta.
 | Característica | Medida e resultado | Nota | Por que essa nota |
 |---|---|---|---|
 | Adequação funcional | Casos funcionais e de sistema com o resultado do requisito: 12 de 15 (80%) — TU-NFI-15 a 24 e TS-NFI-01 a 05 | 2 | Os 80% dariam 4, mas uma das falhas é a Issue #2, de severidade alta: produto sem Modalidade BC ICMS não pode ser incluído |
-| Eficiência de desempenho | Não medida | — | Os testes de sistema conferem o resultado na tela, mas não o tempo de resposta |
+| Eficiência de desempenho | Inclusões de item atualizadas na tela em até 2 s: 44 de 50 (88%), mediana de 830 ms (TS-NFI-06) | 4 | Acima de 80% da meta, mas 6 medições passaram de 2 s, uma delas com 8,1 s |
 | Compatibilidade | Operações de item que funcionam no MySQL 8 do projeto, sem ajuste manual: 3 de 3 (incluir, somar quantidade e remover; TI-NFI-02 a 04 e TS-NFI-01, 03 e 04) | 4 | Meta atingida; a convivência com os outros serviços foi avaliada só de forma qualitativa |
 | Capacidade de interação | Entradas inválidas que viram mensagem compreensível: 8 de 11 classes inválidas (73%) | 2 | Produto sem Modalidade BC ICMS mostra o alerta técnico "No value present" (Issue #2, alta); quantidade 0 ou negativa é aceita sem aviso (Issue #35); nota inexistente na remoção gera erro técnico |
 | Confiabilidade | Falhas do repositório que viram mensagem: 2 de 2 (TU-NFI-11 e 13); defeitos na classe: 2 | 2 | A inclusão é interrompida por exceção não tratada quando falta a Modalidade BC ICMS (Issue #2, alta) |
@@ -35,7 +35,7 @@ defeito conta na característica que ele afeta.
 | Flexibilidade | 1 comando para subir (`docker compose up -d`); compila só com Java 8 | 3 | Não compila com a versão atual do Java, e o Selenium exige Java 11 ou mais |
 | Segurança física (safety) | Valores inválidos gravados na nota: quantidade 0 ou negativa aceita (TU-NFI-21 e 22) | 3 | O item é gravado com valor total zero ou negativo, e os totais da nota são recalculados com ele (Issue #35, média) |
 
-**Média: 2,9 de 5** nas 8 características avaliadas. `NotaFiscalItemService`
+**Média: 3,0 de 5** nas 9 características. `NotaFiscalItemService`
 ficou bem testado (100% de arestas e todos os mutantes não equivalentes mortos),
 sem problemas no Sonar e com poucas dependências. O que puxa as notas para baixo
 são os dois defeitos abertos: a Issue #2 (alta), que afeta a adequação
@@ -56,6 +56,10 @@ funcional, a capacidade de interação e a confiabilidade, e a Issue #35 (média
   `NotaFiscalItemService.java`. Os 4 mutantes equivalentes estão nas linhas
   115 e 133 (remoção do `System.out.println` dos `catch`) e 165 e 174
   (`aux + 1` trocado por `aux - 1` num contador que só é comparado com 0).
+- **Eficiência de desempenho:** TS-NFI-06, em 5 execuções de 10 medições
+  cada, depois de uma inclusão de aquecimento. O teste fica com `@Ignore`
+  porque o limite é violado de forma intermitente. Tempos em
+  `docs/evidencias/entrega2/sistema/TS-NFI-06-tempos.txt`.
 - **Compatibilidade:** testes de integração com o MySQL 8 do docker-compose e
   o esquema criado pelo Flyway, e testes de sistema com a aplicação no
   docker-compose.

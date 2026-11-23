@@ -1,0 +1,13 @@
+TS-NFI-06 — tempo de inclusão de item na nota fiscal pela tela (requisito: até 2000 ms)
+Medido da confirmação da quantidade até o item e o total da nota atualizados.
+Aplicação no docker-compose, Selenium 4.13 com Chrome sem janela. Em cada execução,
+1 inclusão de aquecimento (descartada) e 10 medidas.
+
+Execução 1: [855, 636, 882, 812, 1390, 8075, 2046, 826, 879, 834] | mediana 867 | maior 8075 | falhou
+Execução 2: [593, 948, 709, 1624, 632, 667, 1757, 2536, 848, 747] | mediana 797 | maior 2536 | falhou
+Execução 3: [708, 687, 541, 775, 760, 947, 1497, 675, 568, 480] | mediana 697 | maior 1497 | passou
+Execução 4: [1158, 1490, 1400, 622, 669, 542, 483, 436, 2497, 2512] | mediana 913 | maior 2512 | falhou
+Execução 5: [1434, 682, 616, 838, 1675, 1977, 863, 2073, 695, 763] | mediana 850 | maior 2073 | falhou
+
+Total: 50 medições, 44 dentro do limite (88%). Mediana 830 ms, mínimo 436 ms, máximo 8075 ms.
+Acima do limite: 8075, 2046, 2536, 2497, 2512 e 2073 ms.
