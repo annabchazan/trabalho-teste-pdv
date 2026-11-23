@@ -43,7 +43,7 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
- * Testes de sistema da abertura e do fechamento de caixa (TS-CX-01 a 08), pela
+ * Testes de sistema da abertura e do fechamento de caixa (TS-CX-01 a 09), pela
  * interface web com Selenium.
  *
  * Pré-requisitos: aplicação no ar (docker compose up -d) em
@@ -54,7 +54,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  * caso e restaurado depois, como em VendaSistemaIT. Por padrão o Chrome roda
  * sem janela; -Dselenium.headless=false mostra o navegador.
  *
- * TS-CX-07 e 08 verificam o requisito não funcional de segurança.
+ * TS-CX-07 e 08 verificam o requisito não funcional de segurança, e TS-CX-09
+ * o de desempenho.
  */
 public class CaixaSistemaIT {
 
@@ -64,6 +65,8 @@ public class CaixaSistemaIT {
 
 	private static final String SENHA_GERENTE = "123";
 	private static final double DELTA = 0.001;
+	private static final long LIMITE_MS = 2000;
+	private static final int MEDICOES = 10;
 
 	private WebDriver driver;
 	private WebDriverWait espera;
@@ -248,6 +251,55 @@ public class CaixaSistemaIT {
 		// DEFEITO: a senha vai em texto puro na URL, que fica em histórico,
 		// logs de servidor e proxies
 		assertTrue(urls.get(0).contains("senha=" + SENHA_GERENTE));
+	}
+
+	// TS-CX-09: requisito não funcional de desempenho - abrir e fechar caixa pela
+	// tela em até 2 s. Abertura: do clique em "Abrir caixa" até a tela Gerenciar
+	// Caixa. Fechamento: do clique na confirmação até o aviso de caixa fechado.
+	// A primeira abertura e o primeiro fechamento são aquecimento e não contam.
+
+	@Test
+	public void abrirEFecharCaixa_devemResponderEmAteDoisSegundos() throws SQLException {
+		List<Long> aberturas = new ArrayList<>();
+		List<Long> fechamentos = new ArrayList<>();
+		entraNoSistema();
+
+		for (int i = 0; i <= MEDICOES; i++) {
+			driver.get(URL + "/caixa/form");
+			preencheAbertura("Caixa Selenium " + i, "1000");
+
+			long inicio = System.nanoTime();
+			driver.findElement(By.cssSelector(".btn-abrir-caixa")).click();
+			espera.until(ExpectedConditions.urlMatches("/caixa/gerenciar/\\d+$"));
+			espera.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h2.titulo-h1")));
+			long abertura = (System.nanoTime() - inicio) / 1_000_000;
+
+			espera.until(ExpectedConditions.elementToBeClickable(By.id("btnfechacaixa"))).click();
+			espera.until(ExpectedConditions.visibilityOfElementLocated(By.id("admsenha"))).sendKeys(SENHA_GERENTE);
+
+			inicio = System.nanoTime();
+			driver.findElement(By.cssSelector(".btn-fechar-caixa")).click();
+			Alert alerta = espera.until(ExpectedConditions.alertIsPresent());
+			long fechamento = (System.nanoTime() - inicio) / 1_000_000;
+			String mensagem = alerta.getText();
+			alerta.accept();
+
+			assertEquals("Caixa fechado com sucesso", mensagem);
+			if (i > 0) {
+				aberturas.add(abertura);
+				fechamentos.add(fechamento);
+			}
+		}
+
+		System.out.println("TS-CX-09 abertura (ms): " + aberturas);
+		System.out.println("TS-CX-09 fechamento (ms): " + fechamentos);
+		// as 10 medidas mais o aquecimento: todos os caixas abertos foram fechados
+		assertEquals(MEDICOES + 1L, consultaNumero(
+				"select count(*) from caixa where codigo > ? and data_fechamento is not null", maiorCodigoAntes));
+		for (long tempo : aberturas)
+			assertTrue("abertura levou " + tempo + " ms; tempos: " + aberturas, tempo <= LIMITE_MS);
+		for (long tempo : fechamentos)
+			assertTrue("fechamento levou " + tempo + " ms; tempos: " + fechamentos, tempo <= LIMITE_MS);
 	}
 
 	// passos na interface
