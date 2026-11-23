@@ -326,6 +326,42 @@ contra o código de produção. Oito cenários são testes de caracterização d
   5. Medição final: 100% de arestas (48/48), 100% de escore de mutação (44/44),
      0 problemas no Sonar; suíte do grupo com 111 testes e 0 falhas.
 
+### 2026-11-19 — Testes da Entrega 2 de NotaFiscalItemService
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
+- **Membro responsável:** Anna Chazan
+- **Contexto/Prompt (resumo):** Apoio na Entrega 2 de NotaFiscalItemService:
+  - Testes unitários: a IA ajudou a reforçar as asserções e o isolamento dos
+    testes existentes e a criar os casos TU-NFI-15 a 24, derivados das tabelas
+    de valor limite e partição.
+  - Testes de integração: criou os casos TI-NFI-01 a 05, com o MySQL do
+    docker-compose.
+  - Testes de sistema: criou os casos TS-NFI-01 a 05, com Selenium.
+  - Sonar: trocou a injeção por atributo pela injeção pelo construtor em
+    `NotaFiscalItemService.java`, para resolver os 5 apontamentos.
+  - Evidências: rodou JaCoCo, PIT e SonarQube e gerou os prints e recortes
+    das evidências.
+  - Documentos: editou o Plano de Teste e o Relatório de Execução no Google
+    Docs e atualizou o README.
+- **Artefatos afetados:**
+  - `src/main/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemService.java`
+  - `src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemServiceTest.java`
+  - `src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemServiceIT.java`
+  - `src/test/java/net/originmobi/pdv/service/notafiscal/NotaFiscalItemSistemaIT.java`
+  - `docs/evidencias/entrega2/`
+  - `README.md`
+  - Plano de Teste e Relatório de Execução no Google Docs (abas da Anna)
+- **Validação realizada:**
+  - Suíte completa executada no container Java 8 com MySQL: 93 testes, sem
+    falhas, 7 ignorados por defeitos documentados.
+  - NotaFiscalItemServiceIT: 5 testes, sem falhas, 1 ignorado pela Issue #2.
+  - Mutantes sobreviventes analisados e classificados como equivalentes:
+    4 mutantes, nas linhas 115, 133, 165 e 174.
+  - A responsável revisou, junto com a IA, tudo o que foi feito: código,
+    testes, textos e prints. Os casos que expõem defeitos (TU-NFI-14, 21 e
+    22; TI-NFI-05; TS-NFI-02) ficaram com @Ignore, apontando a Issue ou o
+    defeito correspondente.
+
 <!--
 Modelo de entrada para novos registros:
 
