@@ -379,7 +379,7 @@ public class NotaFiscalItemServiceTest {
 	// @Ignore até o defeito ser corrigido — remover a anotação reproduz a falha.
 
 	// TU-NFI-21
-	@Ignore("Defeito: insere aceita qtd = 0")
+	@Ignore("Issue #35: insere aceita qtd = 0")
 	@Test
 	public void insere_deveRejeitarQuantidadeZero() {
 		insereComQuantidadeEsperandoErro(0);
@@ -388,7 +388,7 @@ public class NotaFiscalItemServiceTest {
 	}
 
 	// TU-NFI-22
-	@Ignore("Defeito: insere aceita qtd negativa")
+	@Ignore("Issue #35: insere aceita qtd negativa")
 	@Test
 	public void insere_deveRejeitarQuantidadeNegativa() {
 		insereComQuantidadeEsperandoErro(-1);

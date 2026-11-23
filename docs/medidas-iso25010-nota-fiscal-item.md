@@ -112,7 +112,7 @@ verificam a gravação no banco, e não o requisito.
   - Issue #2, da Entrega 1: `NoSuchElementException` quando o produto não tem
     Modalidade BC ICMS. Severidade alta;
   - novo, achado no projeto dos TU-NFI-21 e 22: `insere()` aceita quantidade
-    0 ou negativa.
+    0 ou negativa (Issue #35). Severidade média.
 - **Valor:** 2 ÷ 0,133 = **15,0 defeitos por mil linhas**.
 - **Avaliação:** ❌. A meta era não ter defeitos de severidade alta.
 
@@ -291,7 +291,7 @@ teste com `@Ignore`.
 | ID | Defeito | Severidade | Onde está | Evidência | Issue |
 |---|---|---|---|---|---|
 | Issue #2 | `NoSuchElementException` ao inserir item quando o produto está sem Modalidade BC ICMS (linha 72) | Alta | `NotaFiscalItemService` | TU-NFI-14, TI-NFI-05, TS-NFI-02 (`@Ignore`); CT-NFI-02 | [#2](https://github.com/annabchazan/trabalho-teste-pdv/issues/2) |
-| — | `insere()` aceita quantidade 0 ou negativa e grava o item com valor total zero ou negativo | Não classificada | `NotaFiscalItemService` | TU-NFI-21 e 22 (`@Ignore`) | ainda sem Issue |
+| Issue #35 | `insere()` aceita quantidade 0 ou negativa e grava o item com valor total zero ou negativo | Média | `NotaFiscalItemService` | TU-NFI-21 e 22 (`@Ignore`) | [#35](https://github.com/annabchazan/trabalho-teste-pdv/issues/35) |
 
 Fora da classe, a Issue [#1](https://github.com/annabchazan/trabalho-teste-pdv/issues/1)
 (cadastro de Empresa expõe exceção técnica do Hibernate) foi achada ao
