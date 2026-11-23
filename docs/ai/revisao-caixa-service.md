@@ -99,7 +99,50 @@ para zerar o S2143. A mudança atingiria `CaixaLancamentoService`, as consultas 
 
 ## Medidas ISO/IEC 25010
 
-A IA propôs as 19 medidas e a avaliação de cada característica, usando a mesma escala
-do grupo. Os valores vêm das etapas anteriores, exceto o tempo de resposta, medido com
-100 requisições à tela de caixas com a aplicação no ar. A severidade dos defeitos
+Versão inicial da IA: medidas para as 8 características da ISO/IEC 25010:2011, com
+avaliação em ✅/⚠️/❌. Os valores vinham das etapas anteriores, exceto o tempo de
+resposta, medido com 100 requisições à tela de caixas. A severidade dos defeitos
 (alta, média e baixa) foi definida com critério escrito no documento da entrega.
+
+Alterações até a versão final, pedidas na revisão do responsável e do grupo:
+
+- A avaliação passou para uma escala de 1 a 5 com critério escrito, e a justificativa
+  ficou separada em duas tabelas: por que cada medida foi escolhida e por que cada
+  nota foi dada.
+- O modelo passou para a ISO/IEC 25010:2023, a edição mais recente, com 9
+  características. Cada medida indica a subcaracterística que mede. A Segurança física
+  (*safety*) foi avaliada, porque a norma inclui bens no que deve ser protegido, e o
+  caixa guarda dinheiro.
+- A medida de tempo de resposta foi descartada. Ela não tinha teste nem arquivo no
+  repositório, foi feita com `curl` (sem a tela), e metade das 100 requisições usava a
+  data em dd/mm/aaaa, que cai na página de erro do D-CX-04. No lugar entrou o
+  TS-CX-09 (seção abaixo).
+
+## Teste de desempenho TS-CX-09 (`CaixaSistemaIT`)
+
+A IA escreveu o TS-CX-09 seguindo o TS-REC-06 e o TS-NFI-06 do grupo. Ele mede, pela
+tela, do clique em "Abrir caixa" até a tela Gerenciar Caixa e do clique na
+confirmação da senha até o aviso de caixa fechado. Em cada execução, a primeira
+abertura e o primeiro fechamento são aquecimento e não contam, e depois vêm 10
+medidas de cada, com limite de 2 s.
+
+Verificação: aplicação reiniciada com o código da `master` e 5 execuções no terminal
+do Windows. A primeira rodou o `CaixaSistemaIT` inteiro (9 testes, 0 falhas). As 100
+medições ficaram abaixo de 2 s, e a maior foi de 729 ms. Os tempos estão em
+`docs/evidencias/entrega2/sistema/TS-CX-09-tempos.txt`. O teste passou na primeira
+execução, por isso a versão final é igual à inicial.
+
+## Limite de tempo do PIT
+
+A mesma revisão apontou que o PIT marcava os mutantes de `CaixaService` como
+`TIMED_OUT`. Conferido no container Java 8, com `CaixaServiceTest`:
+
+| Execução | KILLED | TIMED_OUT | Testes executados |
+|---|---|---|---|
+| limite padrão | 0 | 49 | 0 |
+| `-DtimeoutConstant=30000` | 49 | 0 | 96 |
+
+Com o limite padrão, o PIT conta os 49 como detectados, mas nenhum teste chegou a
+rodar, então esse resultado não mostra nada. O escore de 100% vale com o limite de
+30 s, em que cada mutante é morto por um teste que falha. Comando:
+`mvn test-compile org.pitest:pitest-maven:mutationCoverage -DtargetClasses=net.originmobi.pdv.service.CaixaService -DtargetTests=net.originmobi.pdv.service.CaixaServiceTest -DtimeoutConstant=30000`.

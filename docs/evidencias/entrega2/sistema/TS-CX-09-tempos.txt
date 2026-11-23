@@ -1,0 +1,24 @@
+TS-CX-09 — tempo de abertura e de fechamento de caixa pela tela (requisito: até 2000 ms cada)
+Abertura: do clique em "Abrir caixa" até a tela Gerenciar Caixa aparecer.
+Fechamento: do clique na confirmação da senha até o aviso "Caixa fechado com sucesso".
+Aplicação no docker-compose, Selenium 4.13 com Chrome sem janela. Em cada execução,
+1 abertura e 1 fechamento de aquecimento (descartados) e 10 medidas de cada.
+Execução 1 rodou o CaixaSistemaIT inteiro (9 testes); as execuções 2 a 5, só o TS-CX-09.
+
+Execução 1, abertura:   [590, 597, 607, 588, 600, 635, 617, 621, 580, 601] | mediana 600 | maior 635 | passou
+Execução 1, fechamento: [592, 570, 588, 555, 557, 613, 600, 568, 551, 557] | mediana 569 | maior 613 | passou
+Execução 2, abertura:   [591, 610, 610, 621, 596, 614, 582, 598, 589, 587] | mediana 597 | maior 621 | passou
+Execução 2, fechamento: [559, 565, 605, 573, 554, 560, 559, 583, 578, 564] | mediana 564 | maior 605 | passou
+Execução 3, abertura:   [646, 625, 642, 609, 584, 624, 601, 609, 582, 591] | mediana 609 | maior 646 | passou
+Execução 3, fechamento: [563, 587, 608, 559, 568, 598, 576, 553, 552, 566] | mediana 567 | maior 608 | passou
+Execução 4, abertura:   [679, 599, 654, 615, 703, 666, 607, 597, 599, 601] | mediana 611 | maior 703 | passou
+Execução 4, fechamento: [563, 562, 667, 650, 617, 556, 630, 604, 559, 573] | mediana 588 | maior 667 | passou
+Execução 5, abertura:   [636, 627, 646, 601, 729, 714, 633, 592, 592, 591] | mediana 630 | maior 729 | passou
+Execução 5, fechamento: [685, 581, 614, 558, 641, 569, 557, 569, 561, 561] | mediana 569 | maior 685 | passou
+
+Abertura: 50 medições, 50 dentro do limite (100%). Mediana 607 ms, mínimo 580 ms, máximo 729 ms.
+Fechamento: 50 medições, 50 dentro do limite (100%). Mediana 568 ms, mínimo 551 ms, máximo 685 ms.
+Total: 100 medições, 100 dentro do limite (100%). Mediana 594 ms, máximo 729 ms.
+
+Comando: mvnw verify -Dtest=NenhumTeste -Dsurefire.failIfNoSpecifiedTests=false -Djacoco.skip=true -Dit.test=CaixaSistemaIT#abrirEFecharCaixa_devemResponderEmAteDoisSegundos
+Data: 2026-11-22.

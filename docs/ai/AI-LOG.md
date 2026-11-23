@@ -6,6 +6,37 @@ Correções ortográficas e configurações pontuais de IDE não são registrada
 
 ## Entradas
 
+### 2026-11-22 — Entrega 2 de CaixaService: teste de desempenho TS-CX-09 e limite de tempo do PIT
+
+- **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
+- **Membro responsável:** João Pedro G. Valadares
+- **Contexto/Prompt (resumo):** Uma revisão do relatório apontou que a medida de
+  eficiência de desempenho da ISO/IEC 25010 ("100 listagens em até 2 s, mediana de
+  12 ms") não tinha teste nem arquivo de tempos no repositório, e que o texto a
+  chamava de requisito não funcional do teste de sistema, que era só de segurança.
+  Pedido: criar um teste de sistema que mede abrir e fechar caixa pela tela e guardar
+  os tempos, como TS-REC-06 e TS-NFI-06.
+- **Resultado da IA (resumo):** o caso TS-CX-09 em `CaixaSistemaIT`, que mede do
+  clique em "Abrir caixa" até a tela Gerenciar Caixa e do clique na confirmação da
+  senha até o aviso de caixa fechado, com 1 abertura e 1 fechamento de aquecimento e
+  10 medidas de cada, limite de 2 s. A IA também conferiu a medição antiga: eram
+  requisições com `curl`, sem navegador, e metade delas usava a data em dd/mm/aaaa,
+  que cai na página de erro do D-CX-04. Por isso a medida antiga foi descartada.
+- **Artefatos afetados:** `CaixaSistemaIT.java`,
+  `docs/evidencias/entrega2/sistema/TS-CX-09-tempos.txt`,
+  `docs/ai/revisao-caixa-service.md`, este registro e o README.
+- **Decisão:** aceito o TS-CX-09 sem alteração. A medida de eficiência passou a ser a
+  abertura e o fechamento pela tela, as funções principais da classe.
+- **Validação realizada:** aplicação reiniciada com o código da `master`; 5 execuções
+  no terminal do Windows (a primeira com o `CaixaSistemaIT` inteiro: 9 testes, 0
+  falhas). 100 de 100 medições abaixo de 2 s: abertura com mediana de 607 ms (máximo
+  729 ms) e fechamento com mediana de 568 ms (máximo 685 ms). Banco limpo depois (0
+  caixas, 0 lançamentos). A mesma revisão apontou que o PIT marcava os mutantes como
+  `TIMED_OUT`. Conferido no container: com o limite padrão, os 49 saem `TIMED_OUT` e o
+  PIT não executa nenhum teste; com `-DtimeoutConstant=30000`, os 49 saem `KILLED`,
+  com 96 execuções de teste. O comando com esse parâmetro foi registrado no README e
+  no documento da entrega.
+
 ### 2026-11-22 — Entrega 2 de CaixaService: testes de sistema, correção do Sonar e medidas ISO/IEC 25010
 
 - **Ferramenta:** Claude Code (Anthropic, modelo Opus 5.5)
