@@ -80,7 +80,7 @@ usado como alvo de teste na disciplina Qualidade e Teste.
 - Resultados: 100% de arestas e 89% de mutação (33/37, os 4 restantes equivalentes); Sonar de 5 problemas para 0; 2 defeitos na classe, nenhum corrigido
 - Casos de teste manual CT-NFI-01/02: [`docs/testes-manuais/CT-NFI-01.md`](docs/testes-manuais/CT-NFI-01.md)
 - CT-NFI-01 executado no TestLink (Passou): [`docs/testes-manuais/evidencias/`](docs/testes-manuais/evidencias/)
-- Defeitos encontrados: Issues [#1](../../issues/1), [#2](../../issues/2)
+- Defeitos encontrados: Issues [#1](../../issues/1), [#2](../../issues/2), [#35](../../issues/35)
 
 **João Portela — `RecebimentoService`**
 
